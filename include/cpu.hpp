@@ -40,7 +40,7 @@ private:
         LENGTH
     };
 
-    enum class CommandType
+    enum class InstructionType
     {
         ADC,
         AND,
@@ -102,7 +102,7 @@ private:
 
     struct Instruction 
     {
-        CommandType com;
+        InstructionType type;
         uint8_t cycles;
         AddrMode addrMode;
     };
@@ -119,6 +119,7 @@ private:
     size_t cycles;
     Mmu mmu; //the mmu
     std::unordered_map<AddrMode, AddressFunction> _address_mode_mapper;
+    std::unordered_map<InstructionType, InstructionFunction> _command_type_mapper;
     std::unordered_map<IrqType, std::pair<uint16_t, uint16_t>> _irq_vector_map;
 
     void SetFlag(uint8_t flagMask, bool val);
