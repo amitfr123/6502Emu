@@ -4,7 +4,7 @@ project(6502Emu VERSION 0.1.0)
 include(CTest)
 enable_testing()
 
-add_executable(6502Emu src/main.cpp src/Mmu.cpp src/cpu.cpp)
+add_executable(6502Emu src/main.cpp src/Mmu.cpp src/Cpu.cpp)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

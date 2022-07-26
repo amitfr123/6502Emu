@@ -1,7 +1,9 @@
 #include <unordered_map>
+#include <vector>
+
 #include "Mmu.hpp"
 
-class cpu {
+class Cpu {
 private:
     static constexpr uint8_t CARRY_FLAG_MASK = 0x01;
     static constexpr uint8_t ZERO_FLAG_MASK = 0x02;
@@ -12,17 +14,30 @@ private:
     static constexpr uint8_t OVERFLOW_FLAG_MASK = 0x40;
     static constexpr uint8_t NEGATIVE_FLAG_MASK = 0x80;
 
+    static constexpr uint16_t ABORT_LSB = 0xfff8;
+    static constexpr uint16_t ABORT_MSB = 0xfff9;
+    static constexpr uint16_t COP_LSB = 0xfff4;
+    static constexpr uint16_t COP_MSB = 0xfff5;
+    static constexpr uint16_t NORMAL_IRQ_LSB = 0xfffe;
+    static constexpr uint16_t NORMAL_IRQ_MSB = 0xffff;
+    static constexpr uint16_t BRK_LSB = NORMAL_IRQ_LSB;
+    static constexpr uint16_t BRK_MSB = NORMAL_IRQ_MSB;
+    static constexpr uint16_t NMI_LSB = 0xfffa;
+    static constexpr uint16_t NMI_MSB = 0xfffb;
+    static constexpr uint16_t RESET_LSB = 0xfffc;
+    static constexpr uint16_t RESET_MSB = 0xfffd;
+
     enum class IrqType
     {
         ABORT,
         COP,
-        HW_IRQ,
+        NORMAL_IRQ,
         BRK,
         NMI,
         RESET
     };
 
-    enum class AddrMode
+    enum class AMode
     {
         ACCUM, //Operation on the accumulator
         IMM, //Second byte contains the opeand with no further memory addresing required
@@ -36,11 +51,10 @@ private:
         RELATIVE, //Used only in branch instructions and establishes a destination for the conditional branch
         I_INDIRECT, //The second byte is added to the x register and the result is a zero page address. From the zero page you take the effective address is the next 2 bytes.
         INDIRECT_I, //The second byte is added to the y register and the result is a zero page address. From the zero page you take the effective address is the next 2 bytes.
-        INDIRECT, //The second and third contain a full 16 bit address. From this address you take the effective address is the next 2 bytes.
-        LENGTH
+        INDIRECT //The second and third contain a full 16 bit address. From this address you take the effective address is the next 2 bytes.
     };
 
-    enum class InstructionType
+    enum class IType
     {
         ADC,
         AND,
@@ -97,14 +111,15 @@ private:
         TSX,
         TXA,
         TXS,
-        TYA
+        TYA,
+        MIA // MIA represents every illegal instruction that wasn't implemented
     };
 
     struct Instruction 
     {
-        InstructionType type;
+        IType type;
+        AMode addrMode;
         uint8_t cycles;
-        AddrMode addrMode;
     };
 
     typedef std::function<uint16_t ()> AddressFunction;
@@ -118,9 +133,10 @@ private:
     uint8_t p; //flags
     size_t cycles;
     Mmu mmu; //the mmu
-    std::unordered_map<AddrMode, AddressFunction> _address_mode_mapper;
-    std::unordered_map<InstructionType, InstructionFunction> _command_type_mapper;
+    std::unordered_map<AMode, AddressFunction> _address_mode_mapper;
+    std::unordered_map<IType, InstructionFunction> _instruction_type_mapper;
     std::unordered_map<IrqType, std::pair<uint16_t, uint16_t>> _irq_vector_map;
+    std::vector<Instruction> _opcode_vector;
 
     void SetFlag(uint8_t flagMask, bool val);
 
@@ -174,7 +190,7 @@ private:
     void Brk(const Instruction & instruction);
     void Bvc(const Instruction & instruction);
     void Bvs(const Instruction & instruction);
-    void Cls(const Instruction & instruction);
+    void Clc(const Instruction & instruction);
     void Cld(const Instruction & instruction);
     void Cli(const Instruction & instruction);
     void Clv(const Instruction & instruction);
@@ -218,5 +234,5 @@ private:
     void Txs(const Instruction & instruction);
     void Tya(const Instruction & instruction);
 public:
-
+    Cpu();
 };
