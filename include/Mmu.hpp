@@ -1,3 +1,5 @@
+#pragma once
+
 #include <array>
 #include <vector>
 #include <functional>
@@ -9,8 +11,8 @@ private:
     static constexpr uint32_t TRUE_RAM_SIZE = 0x800;
     static constexpr uint32_t RAM_MEMORY_RANGE = 0x2000;
 
-    typedef std::function<void (const uint16_t address, const uint8_t data)> WriteFunction;
-    typedef std::function<uint8_t (const uint16_t address)> ReadFunction;
+    using WriteFunction = std::function<void (const uint16_t address, const uint8_t data)>;
+    using ReadFunction = std::function<uint8_t (const uint16_t address)>;
 
     struct phis_transltion
     {

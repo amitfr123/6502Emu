@@ -1,3 +1,5 @@
+#pragma once
+
 #include <unordered_map>
 #include <vector>
 
@@ -122,8 +124,8 @@ private:
         uint8_t cycles;
     };
 
-    typedef std::function<uint16_t ()> AddressFunction;
-    typedef std::function<void (const Instruction &)> InstructionFunction;
+    using AddressFunction = std::function<uint16_t ()>;
+    using InstructionFunction = std::function<void (const Instruction &)>;
 
     uint16_t pc; //program counter
     uint8_t sp; //stack
