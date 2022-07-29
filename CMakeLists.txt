@@ -7,7 +7,7 @@ enable_testing()
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
 
-add_executable(6502Emu src/main.cpp src/Mmu.cpp src/Cpu.cpp src/EmuBaseWindow.cpp src/EmuMemoryWindow.cpp)
+add_executable(6502Emu src/main.cpp src/Mmu.cpp src/Cpu.cpp src/EmuBaseWindow.cpp src/EmuMemoryWindow.cpp src/EmuTextInputHelper)
 
 target_link_libraries(6502Emu ${SDL2_LIBRARIES})
 
