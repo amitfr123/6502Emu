@@ -9,7 +9,10 @@ EmuWindowManager::EmuWindowManager()
 
 void EmuWindowManager::AddNewWindow(std::shared_ptr<EmuBaseWindow> window)
 {
-    _window_mapper.insert(std::make_pair(window->EmuGetWindowId(), window));
+    if (window.get() != nullptr)
+    {
+        _window_mapper.insert(std::make_pair(window->EmuGetWindowId(), window));
+    }
 }
 
 void EmuWindowManager::EmuWindowManagerEventLoop()
