@@ -13,8 +13,7 @@ private:
         uint32_t size;
     };
 
-    void LineChecker();
-    void EnterFunc() override;
+    void LineChecker() override;
 
     std::shared_ptr<Cpu> _cpu;
     std::string _line;

@@ -13,11 +13,6 @@ void EmuMemoryWindow::EmuRenderWindow()
     // TODO: render window
 }
 
-void EmuMemoryWindow::EnterFunc()
-{
-    LineChecker();
-}
-
 // LineChecker This function checks the line so we will be able to load a new memory range configuration
 void EmuMemoryWindow::LineChecker()
 {
@@ -67,4 +62,5 @@ void EmuMemoryWindow::LineChecker()
         _mem_range.start = start;
         _mem_range.size = size;
     }
+    SetAfterEnterMessage(std::move(((flag)? "SUCCESS" : "FAIL")));
 }
