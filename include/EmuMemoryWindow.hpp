@@ -3,17 +3,18 @@
 #include <string>
 
 #include "EmuBaseWindow.hpp"
+#include "EmuTextInputHelper.hpp"
 #include "Cpu.hpp"
 
-class EmuMemoryWindow : public EmuBaseWindow {
+class EmuMemoryWindow : public EmuBaseWindow, private EmuTextInputHelper{
 private:
     struct MemoryRange {
         uint32_t start;
         uint32_t size;
     };
 
-    void TextHandler(const SDL_Event& e);
     void LineChecker();
+    void EnterFunc() override;
 
     std::shared_ptr<Cpu> _cpu;
     std::string _line;

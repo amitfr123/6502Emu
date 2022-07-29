@@ -13,28 +13,12 @@ void EmuMemoryWindow::EmuRenderWindow()
     // TODO: render window
 }
 
-void EmuMemoryWindow::TextHandler(const SDL_Event& e)
+void EmuMemoryWindow::EnterFunc()
 {
-    switch (e.type)
-    {
-    case SDL_EventType::SDL_KEYDOWN:
-        if (e.key.keysym.sym == SDL_KeyCode::SDLK_BACKSPACE && _line.length() > 0)
-        {
-            _line.pop_back();
-        }
-        if (e.key.keysym.sym == SDL_KeyCode::SDLK_RETURN && _line.length() > 0)
-        {
-            LineChecker();
-        }
-    break;
-    case SDL_EventType::SDL_TEXTINPUT:
-        _line.append(e.text.text);
-    break;
-    default:
-        break;
-    }
+    LineChecker();
 }
 
+// LineChecker This function checks the line so we will be able to load a new memory range configuration
 void EmuMemoryWindow::LineChecker()
 {
     uint32_t start = 0;
