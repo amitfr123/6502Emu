@@ -6,8 +6,15 @@
 
 class EmuTextInputHelper {
 protected:
+    enum class LineState
+    {
+        READY,
+        POST_ENTER
+    };
+    void SetAfterEnterMessage(std::string && str);
     void TextHandler(const SDL_Event& e);
 
-    virtual void EnterFunc() = 0;
+    virtual void LineChecker() = 0;
+    LineState _line_state = LineState::READY;
     std::string _line;
 };
