@@ -1,10 +1,11 @@
 #include "../include/EmuBaseWindow.hpp"
 
-EmuBaseWindow::EmuBaseWindow(std::string && window_title, WindowPos && window_pos, uint32_t window_flags)
+EmuBaseWindow::EmuBaseWindow(std::string && window_title, WindowPos && window_pos, uint32_t window_flags, SDL_Color && window_background)
     :
     _window_title(window_title),
     _window_pos(window_pos),
-    _window_flags(window_flags)
+    _window_flags(window_flags),
+    _window_background(window_background)
 {
 }
 
@@ -31,6 +32,8 @@ bool EmuBaseWindow::EmuInitWindow()
         _window.reset();
         return false;
     }
+    SDL_SetRenderDrawColor(_renderer.get(), _window_background.r, _window_background.g, _window_background.b, _window_background.a);
+    SDL_RenderClear(_renderer.get());
     return true;
 }   
 
