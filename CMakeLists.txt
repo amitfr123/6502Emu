@@ -6,6 +6,7 @@ enable_testing()
 
 file(GLOB_RECURSE SOURCES src/*.cpp)
 
+add_definitions("-DFONT_PATH=\"${PROJECT_SOURCE_DIR}/fonts/\"")
 include_directories(include)
 
 add_executable(6502Emu ${SOURCES})
