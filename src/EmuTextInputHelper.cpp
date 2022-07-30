@@ -11,6 +11,7 @@ void EmuTextInputHelper::TextHandler(const SDL_Event& e)
     if (_line_state == LineState::POST_ENTER)
     {
         _line.clear();
+        _line_state = LineState::READY;
     }
     switch (e.type)
     {
