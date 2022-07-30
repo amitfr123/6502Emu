@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "Cpu.hpp"
+#include "HardwareEmulation/Cpu.hpp"
 
 #include "BaseWindow.hpp"
 

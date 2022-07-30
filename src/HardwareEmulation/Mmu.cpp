@@ -1,4 +1,4 @@
-#include "../include/Mmu.hpp"
+#include "HardwareEmulation/Mmu.hpp"
 
 void Mmu::MmuWrite(const uint16_t address, const uint8_t data)
 {

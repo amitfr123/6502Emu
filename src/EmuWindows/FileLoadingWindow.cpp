@@ -33,7 +33,7 @@ void FileLoadingWindow::LineChecker(const std::string& str)
     std::fstream fs(str, std::fstream::in | std::fstream::out | std::fstream::binary);
     if (fs.is_open())
     {
-        _transfer_function(std::move(fs));
+        _transfer_function(std::move(fs), str);
         flag = true;
     }
     _input_text_line_helper.SetAfterEnterMessage(((flag)? "SUCCESS" : "FAIL"));
