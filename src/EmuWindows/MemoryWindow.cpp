@@ -1,20 +1,20 @@
-#include "EmuMemoryWindow.hpp"
+#include "EmuWindows/MemoryWindow.hpp"
 #include "WindowUtilities/SdlColorHelper.hpp"
 
-EmuMemoryWindow::EmuMemoryWindow(std::string && window_title, EmuBaseWindow::WindowPos && window_pos, uint32_t window_flags) :  
-    EmuBaseWindow(std::move(window_title), std::move(window_pos), std::move(window_flags), COLOR_WHITE),
-    _input_text_line_helper(_event_mapper, std::bind(&EmuMemoryWindow::LineChecker, this, std::placeholders::_1)),
+MemoryWindow::MemoryWindow() :
+    BaseWindow("Memory_View_Window", SDL_Rect({0,0,100,100}), 0, COLOR_WHITE),
+    _input_text_line_helper(_event_mapper, std::bind(&MemoryWindow::LineChecker, this, std::placeholders::_1)),
     _mem_range({0,0})
 {
 }
 
-void EmuMemoryWindow::EmuRenderWindow()
+void MemoryWindow::RenderWindow()
 {
     // TODO: render window
 }
 
 // LineChecker This function checks the line so we will be able to load a new memory range configuration
-void EmuMemoryWindow::LineChecker(const std::string& line)
+void MemoryWindow::LineChecker(const std::string& line)
 {
     uint32_t start = 0;
     uint32_t size = 0;

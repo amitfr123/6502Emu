@@ -3,20 +3,23 @@
 #include <string>
 #include <fstream>
 
-#include "EmuBaseWindow.hpp"
+#include "BaseWindow.hpp"
 
 #include "WindowUtilities/InputTextLineHelper.hpp"
 #include "WindowUtilities/OutputTextHelper.hpp"
 
-class EmuFileLoadingWindow : public EmuBaseWindow {
+class FileLoadingWindow : public BaseWindow {
 public:
     using TransferFile = std::function<void (std::fstream file)>;
-    EmuFileLoadingWindow(std::string && window_title, EmuBaseWindow::WindowPos && window_pos, uint32_t window_flags, TransferFile transfer_function);
+    FileLoadingWindow(TransferFile transfer_function);
 
-    void EmuRenderWindow() override;
-    ~EmuFileLoadingWindow() = default;
+    void RenderWindow() override;
+    ~FileLoadingWindow() = default;
 private:
     void LineChecker(const std::string&);
+
+    static constexpr uint32_t FONT_SIZE = 20;
+    static constexpr SDL_Rect WINDOW_RECT = {0, 0, 500, 24};
 
     InputTextLineHelper _input_text_line_helper;
     OutputTextHelper _output_text_helper;

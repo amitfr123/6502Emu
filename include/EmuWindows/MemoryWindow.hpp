@@ -4,15 +4,15 @@
 
 #include "Cpu.hpp"
 
-#include "EmuBaseWindow.hpp"
+#include "BaseWindow.hpp"
 
 #include "WindowUtilities/InputTextLineHelper.hpp"
 
-class EmuMemoryWindow : public EmuBaseWindow {
+class MemoryWindow : public BaseWindow {
 public:
-    EmuMemoryWindow(std::string && window_title, EmuBaseWindow::WindowPos && window_pos, uint32_t window_flags);
-    void EmuRenderWindow() override;
-    ~EmuMemoryWindow() = default;
+    MemoryWindow();
+    void RenderWindow() override;
+    ~MemoryWindow() = default;
 private:
     struct MemoryRange {
         uint32_t start;

@@ -2,9 +2,9 @@
 
 #include <SDL2/SDL_ttf.h>
 
-#include "../include/EmuWindowManager.hpp"
+#include "EmuWindows/WindowManager.hpp"
 
-EmuWindowManager::EmuWindowManager()
+WindowManager::WindowManager()
 {
     SDL_Init(SDL_INIT_VIDEO);
     SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
@@ -12,15 +12,15 @@ EmuWindowManager::EmuWindowManager()
     // TODO: add event listening like TextInput
 }
 
-void EmuWindowManager::AddNewWindow(std::shared_ptr<EmuBaseWindow> window)
+void WindowManager::AddNewWindow(std::shared_ptr<BaseWindow> window)
 {
     if (window.get() != nullptr)
     {
-        _window_mapper.insert(std::make_pair(window->EmuGetWindowId(), window));
+        _window_mapper.insert(std::make_pair(window->GetWindowId(), window));
     }
 }
 
-void EmuWindowManager::EmuWindowManagerEventLoop()
+void WindowManager::EmuWindowManagerEventLoop()
 {
     SDL_Event e;
     bool flag = true;
@@ -49,7 +49,7 @@ void EmuWindowManager::EmuWindowManagerEventLoop()
         {
             for(auto iter = _window_mapper.begin(); iter != _window_mapper.end(); ++iter)
             {
-                iter->second->EmuRenderWindow();
+                iter->second->RenderWindow();
             }
         }
         else
@@ -60,12 +60,12 @@ void EmuWindowManager::EmuWindowManagerEventLoop()
     SDL_StopTextInput();
 }
 
-void EmuWindowManager::EventMapperHelpr(uint32_t win_id, const SDL_Event& e)
+void WindowManager::EventMapperHelpr(uint32_t win_id, const SDL_Event& e)
 {
     auto iter = _window_mapper.find(win_id);
     if (iter == _window_mapper.end())
     {
         return;
     }
-    iter->second->EmuEventHandler(e);
+    iter->second->EventHandler(e);
 }
