@@ -1,9 +1,14 @@
+#include <iostream>
+
+#include <SDL2/SDL_ttf.h>
+
 #include "../include/EmuWindowManager.hpp"
 
 EmuWindowManager::EmuWindowManager()
 {
     SDL_Init(SDL_INIT_VIDEO);
     SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
+    TTF_Init();
     // TODO: add event listening like TextInput
 }
 
@@ -22,6 +27,7 @@ void EmuWindowManager::EmuWindowManagerEventLoop()
 
     // TODO: add support for more event types
     // TODO: find a good way to allow you to close the program
+    SDL_StartTextInput();
     while(flag)
     {
         SDL_PollEvent(&e);
@@ -34,7 +40,7 @@ void EmuWindowManager::EmuWindowManagerEventLoop()
             EventMapperHelpr(e.text.windowID, e);
             break;
         case SDL_WINDOWEVENT:
-            EventMapperHelpr(e.window.windowID, e);
+            //EventMapperHelpr(e.window.windowID, e);
             break;
         default:
             break;
@@ -46,7 +52,12 @@ void EmuWindowManager::EmuWindowManagerEventLoop()
                 iter->second->EmuRenderWindow();
             }
         }
+        else
+        {
+            flag = false;
+        }
     }
+    SDL_StopTextInput();
 }
 
 void EmuWindowManager::EventMapperHelpr(uint32_t win_id, const SDL_Event& e)
