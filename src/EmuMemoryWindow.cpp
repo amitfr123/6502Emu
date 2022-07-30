@@ -1,11 +1,11 @@
-#include "../include/EmuMemoryWindow.hpp"
-#include "EmuSdlColorHelper.hpp"
+#include "EmuMemoryWindow.hpp"
+#include "WindowUtilities/SdlColorHelper.hpp"
 
 EmuMemoryWindow::EmuMemoryWindow(std::string && window_title, EmuBaseWindow::WindowPos && window_pos, uint32_t window_flags) :  
     EmuBaseWindow(std::move(window_title), std::move(window_pos), std::move(window_flags), COLOR_WHITE),
+    _input_text_line_helper(_event_mapper, std::bind(&EmuMemoryWindow::LineChecker, this, std::placeholders::_1)),
     _mem_range({0,0})
 {
-    EmuTextInputHelper::InterfaceSetup(_event_mapper);
 }
 
 void EmuMemoryWindow::EmuRenderWindow()
@@ -14,7 +14,7 @@ void EmuMemoryWindow::EmuRenderWindow()
 }
 
 // LineChecker This function checks the line so we will be able to load a new memory range configuration
-void EmuMemoryWindow::LineChecker()
+void EmuMemoryWindow::LineChecker(const std::string& line)
 {
     uint32_t start = 0;
     uint32_t size = 0;
@@ -22,11 +22,11 @@ void EmuMemoryWindow::LineChecker()
     bool flag = true;
     std::string tmp;
 
-    if (std::count(_line.begin(), _line.end(), '_') != 1)
+    if (std::count(line.begin(), line.end(), '_') != 1)
     {
         flag = false;
     }
-    for(auto it = _line.begin(); it != _line.end() && flag; ++it) {
+    for(auto it = line.begin(); it != line.end() && flag; ++it) {
         if (*it == ',')
         {
             if (num_count == 0)
@@ -62,5 +62,5 @@ void EmuMemoryWindow::LineChecker()
         _mem_range.start = start;
         _mem_range.size = size;
     }
-    SetAfterEnterMessage(std::move(((flag)? "SUCCESS" : "FAIL")));
+    _input_text_line_helper.SetAfterEnterMessage(((flag)? "SUCCESS" : "FAIL"));
 }

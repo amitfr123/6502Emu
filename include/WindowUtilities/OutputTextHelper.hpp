@@ -7,25 +7,17 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
-#include "EmuInterfaceSetupHelper.hpp"
-
-struct EmuTextOutputStyle
-{
-    std::string font_path;
-    uint32_t font_size;
-    SDL_Color text_color;
-};
-
-class EmuTextOutputHelper : public EmuInterfaceSetupHelper<const EmuTextOutputStyle&&> {
-protected:
-    void InterfaceSetup(const EmuTextOutputStyle&& style) override
+class OutputTextHelper {
+public:
+    OutputTextHelper(const std::string& font_path, const uint32_t font_size, SDL_Color text_color) 
+        :
+        _color(std::move(text_color))
     {
-        _font.reset(TTF_OpenFont(style.font_path.c_str(), style.font_size), &TTF_CloseFont);
+        _font.reset(TTF_OpenFont(font_path.c_str(), font_size), &TTF_CloseFont);
         if (_font.get() == nullptr)
         {
             throw std::runtime_error("Invalid font path");
         }
-        _color = style.text_color;
     }
 
     std::shared_ptr<SDL_Texture> CreateTextTexture(const std::string& text, std::shared_ptr<SDL_Renderer> renderer)
@@ -54,6 +46,7 @@ protected:
         return dim_rect;
     }
 
+private:
     std::shared_ptr<TTF_Font> _font;
     SDL_Color _color;
 };

@@ -4,10 +4,9 @@ project(6502Emu VERSION 0.1.0)
 include(CTest)
 enable_testing()
 
-file(GLOB INCLUDES include)
-file(GLOB SOURCES src/*.cpp)
+file(GLOB_RECURSE SOURCES src/*.cpp)
 
-include_directories(${INCLUDES})
+include_directories(include)
 
 add_executable(6502Emu ${SOURCES})
 
