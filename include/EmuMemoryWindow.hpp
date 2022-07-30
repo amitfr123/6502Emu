@@ -6,7 +6,7 @@
 #include "EmuTextInputHelper.hpp"
 #include "Cpu.hpp"
 
-class EmuMemoryWindow : public EmuBaseWindow, public EmuTextInputHelper{
+class EmuMemoryWindow : public EmuBaseWindow, public EmuTextInputHelper {
 private:
     struct MemoryRange {
         uint32_t start;
@@ -16,7 +16,6 @@ private:
     void LineChecker() override;
 
     std::shared_ptr<Cpu> _cpu;
-    std::string _line;
     MemoryRange _mem_range;
 public:
     EmuMemoryWindow(std::string && window_title, EmuBaseWindow::WindowPos && window_pos, uint32_t window_flags);

@@ -1,11 +1,11 @@
 #include "../include/EmuMemoryWindow.hpp"
+#include "EmuSdlColorHelper.hpp"
 
 EmuMemoryWindow::EmuMemoryWindow(std::string && window_title, EmuBaseWindow::WindowPos && window_pos, uint32_t window_flags) :  
-    EmuBaseWindow(std::move(window_title), std::move(window_pos), std::move(window_flags)),
+    EmuBaseWindow(std::move(window_title), std::move(window_pos), std::move(window_flags), COLOR_WHITE),
     _mem_range({0,0})
 {
-    _event_mapper.insert(std::make_pair(SDL_EventType::SDL_TEXTINPUT, std::bind(&EmuMemoryWindow::TextHandler, this, std::placeholders::_1)));
-    _event_mapper.insert(std::make_pair(SDL_EventType::SDL_KEYDOWN, std::bind(&EmuMemoryWindow::TextHandler, this, std::placeholders::_1)));
+    EmuTextInputHelper::InterfaceSetup(_event_mapper);
 }
 
 void EmuMemoryWindow::EmuRenderWindow()
