@@ -1,11 +1,9 @@
 #pragma once
 
-#include <vector>
-#include <array>
 #include <fstream>
 #include <memory>
 
-#include "Mapper.hpp"
+#include "Mappers/Mapper.hpp"
 
 class Cartridge {
 public:
@@ -28,11 +26,6 @@ private:
       char reserved[5];
     };
 
-    static constexpr uint32_t PRG_ROM_BANK_SIZE = 16384;
-    static constexpr uint32_t CHR_ROM_BANK_SIZE = 8192;
-    
-    std::vector<std::array<uint8_t, PRG_ROM_BANK_SIZE>> _prg_rom_bank_vector;
-    std::vector<std::array<uint8_t, CHR_ROM_BANK_SIZE>> _chr_rom_bank_vector;
     std::shared_ptr<Mapper> _mapper;
     CartridgeHeader _cartridge_header;
 };
