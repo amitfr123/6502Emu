@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <unordered_map>
 #include <vector>
 #include <fstream>
@@ -7,6 +8,9 @@
 #include "Mmu.hpp"
 
 class Cpu {
+public:
+    Cpu(Mmu::WriteFunction mmu_write, Mmu::ReadFunction mmu_read);
+    std::map<uint16_t, std::string> Disassemble();
 private:
     static constexpr uint8_t CARRY_FLAG_MASK = 0x01;
     static constexpr uint8_t ZERO_FLAG_MASK = 0x02;
@@ -135,11 +139,90 @@ private:
     uint8_t y; //index
     uint8_t p; //flags
     size_t cycles;
-    Mmu mmu; //the mmu
+    Mmu::WriteFunction _mmu_write;
+    Mmu::ReadFunction _mmu_read;
     std::unordered_map<AMode, AddressFunction> _address_mode_mapper;
     std::unordered_map<IType, InstructionFunction> _instruction_type_mapper;
     std::unordered_map<IrqType, std::pair<uint16_t, uint16_t>> _irq_vector_map;
     std::vector<Instruction> _opcode_vector;
+
+    std::vector<std::string> _amode_name_mapper = 
+    {
+        "ACCUM",
+        "IMM",
+        "ABSOLUTE",
+        "ZP",
+        "I_ZP_X",
+        "I_ZP_Y",
+        "I_ABSOLUTE_X",
+        "I_ABSOLUTE_Y",
+        "IMPLIED",
+        "RELATIVE",
+        "I_INDIRECT",
+        "INDIRECT_I",
+        "INDIRECT"
+    };
+
+    std::vector<std::string> _itype_name_mapper = 
+    {
+        "ADC",
+        "AND",
+        "ASL",
+        "BCC",
+        "BCS",
+        "BEQ",
+        "BIT",
+        "BMI",
+        "BNE",
+        "BPL",
+        "BRK",
+        "BVC",
+        "BVS",
+        "CLC",
+        "CLD",
+        "CLI",
+        "CLV",
+        "CMP",
+        "CPX",
+        "CPY",
+        "DEC",
+        "DEX",
+        "DEY",
+        "EOR",
+        "INC",
+        "INX",
+        "INY",
+        "JMP",
+        "JSR",
+        "LDA",
+        "LDX",
+        "LDY",
+        "LSR",
+        "NOP",
+        "ORA",
+        "PHA",
+        "PHP",
+        "PLA",
+        "PLP",
+        "ROL",
+        "ROR",
+        "RTI",
+        "RTS",
+        "SBC",
+        "SEC",
+        "SED",
+        "SEI",
+        "STA",
+        "STX",
+        "STY",
+        "TAX",
+        "TAY",
+        "TSX",
+        "TXA",
+        "TXS",
+        "TYA",
+        "MIA" 
+    };
 
     void SetFlag(uint8_t flagMask, bool val);
 
@@ -236,6 +319,4 @@ private:
     void Txa(const Instruction & instruction);
     void Txs(const Instruction & instruction);
     void Tya(const Instruction & instruction);
-public:
-    Cpu();
 };
