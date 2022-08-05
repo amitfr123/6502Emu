@@ -43,7 +43,7 @@ void WindowManager::EmuWindowManagerEventLoop()
             EventMapperHelpr(e.wheel.windowID, e);
             break;
         case SDL_WINDOWEVENT:
-            //EventMapperHelpr(e.window.windowID, e);
+            EventMapperHelpr(e.window.windowID, e);
             break;
         default:
             break;
@@ -52,7 +52,10 @@ void WindowManager::EmuWindowManagerEventLoop()
         {
             for(auto iter = _window_mapper.begin(); iter != _window_mapper.end(); ++iter)
             {
-                iter->second->RenderWindow();
+                if (!iter->second->IsWindowClosed())
+                {
+                    iter->second->RenderWindow();
+                }
             }
         }
         else

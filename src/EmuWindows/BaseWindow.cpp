@@ -3,6 +3,8 @@
 #include "EmuWindows/BaseWindow.hpp"
 
 BaseWindow::BaseWindow(const std::string& window_title, SDL_Rect window_pos, uint32_t window_flags, SDL_Color window_background)
+    :
+    _window_event_helper(_event_mapper, std::bind(&BaseWindow::OnWindowClose, this))
 {
     _window.reset(SDL_CreateWindow(
         window_title.c_str(),
@@ -21,7 +23,7 @@ BaseWindow::BaseWindow(const std::string& window_title, SDL_Rect window_pos, uin
         throw std::runtime_error("failed to create a renderer for the window");
     }
     SDL_SetRenderDrawColor(_renderer.get(), window_background.r, window_background.g, window_background.b, window_background.a);
-    SDL_RenderClear(_renderer.get());
+    _window_closed = false;
 }
 
 void BaseWindow::HideWindow()
@@ -65,4 +67,16 @@ uint32_t BaseWindow::GetWindowId()
         return 0;
     }
     return SDL_GetWindowID(_window.get());
+}
+
+bool BaseWindow::IsWindowClosed()
+{
+    return _window_closed;
+}
+
+void BaseWindow::OnWindowClose()
+{
+    _window_closed = true;
+    _renderer.reset();
+    _window.reset();
 }

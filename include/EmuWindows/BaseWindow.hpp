@@ -7,6 +7,8 @@
 #include <string>
 #include <functional>
 
+#include "WindowUtilities/WindowEventHelper.hpp"
+
 class BaseWindow {
 public:
     bool InitWindow();
@@ -15,6 +17,7 @@ public:
     bool IsWinodwHidden();
     void EventHandler(const SDL_Event& e);
     uint32_t GetWindowId();
+    bool IsWindowClosed();
     virtual void RenderWindow(){}
     virtual ~BaseWindow() = default;
 
@@ -26,4 +29,9 @@ protected:
     std::unordered_map<SDL_EventType, EventHandlerFunction> _event_mapper;
     std::shared_ptr<SDL_Window> _window;
     std::shared_ptr<SDL_Renderer> _renderer;
+    
+    bool _window_closed;
+private:
+    void OnWindowClose();
+    WindowEventHelper _window_event_helper;
 };
