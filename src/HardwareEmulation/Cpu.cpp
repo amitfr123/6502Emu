@@ -1,6 +1,10 @@
+#include "NumToHexStringConvertor.hpp"
+
 #include "HardwareEmulation/Cpu.hpp"
 
-Cpu::Cpu() : 
+Cpu::Cpu(Mmu::WriteFunction mmu_write, Mmu::ReadFunction mmu_read) : 
+    _mmu_write(std::move(mmu_write)),
+    _mmu_read(std::move(mmu_read)),
     _address_mode_mapper({
         {AMode::ACCUM, std::bind(&Cpu::accum_addr, this)},
         {AMode::IMM, std::bind(&Cpu::imm_addr, this)},
@@ -129,12 +133,12 @@ uint8_t Cpu::GetFlag(uint8_t flagMask)
 
 void Cpu::CpuWrite(const uint16_t address, const uint8_t data)
 {
-    mmu.MmuWrite(address, data);
+    _mmu_write(address, data);
 }
 
 uint8_t Cpu::CpuRead(const uint16_t address)
 {
-    return mmu.MmuRead(address);
+    return _mmu_read(address);
 }
 
 uint16_t Cpu::accum_addr()
@@ -771,4 +775,97 @@ void Cpu::Txs(const Instruction & instruction)
 void Cpu::Tya(const Instruction & instruction)
 {
     a = y;
+}
+
+std::map<uint16_t, std::string> Cpu::Disassemble()
+{
+    std::map<uint16_t, std::string> diss_map;
+    uint16_t addr = 0;
+    uint16_t orig_addr = 0;
+    uint16_t temp_addr;
+    uint8_t data;
+    while (addr < 0xffff && orig_addr <= addr)
+    {
+        std::string asm_line;
+        asm_line = "Address: " + NumToHexStringConvertor::Convert(addr, 4) + ",   ";
+        orig_addr = addr;
+        data = _mmu_read(addr++);
+        if (_opcode_vector[data].type == IType::BRK)
+        {
+            addr++;
+        }
+        asm_line += "Instruction opcode:" + NumToHexStringConvertor::Convert(data, 2);
+        asm_line += ",  Instruction:" + _itype_name_mapper[static_cast<int>(_opcode_vector[data].type)];
+        switch (_opcode_vector[data].addrMode)
+        {
+        case AMode::ACCUM :
+        break;
+        case AMode::IMM :
+            temp_addr = _mmu_read(addr++);
+            asm_line += "  " + NumToHexStringConvertor::Convert(temp_addr, 4);
+                
+        break;
+        case AMode::IMPLIED :
+        break;
+        case AMode::ABSOLUTE :
+            temp_addr = _mmu_read(addr++);
+            temp_addr |= (_mmu_read(addr++) << 8);
+            asm_line += "  " + NumToHexStringConvertor::Convert(temp_addr, 4);
+                
+        break;
+        case AMode::ZP:
+            temp_addr = _mmu_read(addr++);
+            asm_line += "  " + NumToHexStringConvertor::Convert(temp_addr, 4);
+                
+        break;
+        case AMode::I_ZP_X:
+            temp_addr = _mmu_read(addr++);
+            asm_line += "  " + NumToHexStringConvertor::Convert(temp_addr, 4) + ", x";
+                
+        break;
+        case AMode::I_ZP_Y:
+            temp_addr = _mmu_read(addr++);
+            asm_line += "  " + NumToHexStringConvertor::Convert(temp_addr, 4) + ", y";
+                
+        break;
+        case AMode::I_ABSOLUTE_X:
+            temp_addr = _mmu_read(addr++);
+            temp_addr |= (_mmu_read(addr++) << 8);
+            asm_line += "  " + NumToHexStringConvertor::Convert(temp_addr, 4) + ", x";
+                
+        break;
+        case AMode::I_ABSOLUTE_Y:
+            temp_addr = _mmu_read(addr++);
+            temp_addr |= (_mmu_read(addr++) << 8);
+            asm_line += "  " +  NumToHexStringConvertor::Convert(temp_addr, 4) + ", y";
+                
+        break;
+        case AMode::RELATIVE:
+            temp_addr = _mmu_read(addr++);
+            asm_line += "  " + NumToHexStringConvertor::Convert(temp_addr, 4) + " [Rel Address:" + NumToHexStringConvertor::Convert(temp_addr + addr, 4) + "]";
+                
+        break;
+        case AMode::I_INDIRECT:
+            temp_addr = _mmu_read(addr++);
+            asm_line += "  " + NumToHexStringConvertor::Convert(temp_addr, 4) + ", x";
+                
+        break;
+        case AMode::INDIRECT_I:
+            temp_addr = _mmu_read(addr++);
+            asm_line += "  " + NumToHexStringConvertor::Convert(temp_addr, 4) + ", y";
+                
+        break;
+        case AMode::INDIRECT:
+            temp_addr = _mmu_read(addr++);
+            temp_addr |= (_mmu_read(addr++) << 8);
+            asm_line += "  " + NumToHexStringConvertor::Convert(temp_addr, 4);
+                
+        break;
+        default:
+            break;
+        }
+        asm_line += ",  Address mode:" + _amode_name_mapper[static_cast<int>(_opcode_vector[data].addrMode)];
+        diss_map[orig_addr] = asm_line;
+    }
+    return std::move(diss_map);
 }
