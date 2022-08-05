@@ -39,6 +39,9 @@ void WindowManager::EmuWindowManagerEventLoop()
         case SDL_TEXTINPUT:
             EventMapperHelpr(e.text.windowID, e);
             break;
+        case SDL_MOUSEWHEEL:
+            EventMapperHelpr(e.wheel.windowID, e);
+            break;
         case SDL_WINDOWEVENT:
             //EventMapperHelpr(e.window.windowID, e);
             break;

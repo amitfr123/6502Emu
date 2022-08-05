@@ -1,66 +1,67 @@
-#include "EmuWindows/MemoryWindow.hpp"
-#include "WindowUtilities/SdlColorHelper.hpp"
+#include <vector>
 
-MemoryWindow::MemoryWindow() :
-    BaseWindow("Memory_View_Window", SDL_Rect({0,0,100,100}), 0, COLOR_WHITE),
-    _input_text_line_helper(_event_mapper, std::bind(&MemoryWindow::LineChecker, this, std::placeholders::_1)),
-    _mem_range({0,0})
+#include "WindowUtilities/SdlColorHelper.hpp"
+#include "NumToHexStringConvertor.hpp"
+
+
+#include "EmuWindows/MemoryWindow.hpp"
+
+
+MemoryWindow::MemoryWindow(GetRamFunction get_ram_function) :
+    BaseWindow("Memory_View_Window", WINDOW_RECT, 0, COLOR_RED),
+    _output_text_helper(std::string(FONT_PATH) + "PressStart2P.ttf", FONT_SIZE, COLOR_WHITE),
+    _scroll_helper(_event_mapper, std::bind(&MemoryWindow::MoveYIndex, this, std::placeholders::_1)),
+    _get_ram_function(std::move(get_ram_function))
 {
+    _y_index = 0;
+}
+
+std::vector<std::string> MemoryWindow::RamViewBuilder()
+{
+    uint32_t line_addr = 0;
+    auto ram_arr = _get_ram_function();
+    std::vector<std::string> string_vector;
+    std::string view;
+    for(const uint8_t &mem : ram_arr)
+    {
+        if (line_addr % 16 == 0)
+        {
+            string_vector.push_back(view);
+            view = "Address " + NumToHexStringConvertor::Convert(line_addr, 4) + ":  ";
+        }
+        view += NumToHexStringConvertor::Convert(mem, 2);
+        line_addr++;
+        if (line_addr % 4 == 0)
+        {
+           view += " ";
+        }
+    }
+    return std::move(string_vector);
 }
 
 void MemoryWindow::RenderWindow()
 {
-    // TODO: render window
+    SDL_RenderClear(_renderer.get());
+    auto vec = RamViewBuilder();
+    SDL_Rect line_rect;
+    uint32_t y_index = _y_index;
+    for (const auto& line : vec)
+    {  
+        std::shared_ptr<SDL_Texture> texture(_output_text_helper.CreateTextTexture(line, _renderer));
+        SDL_Rect line_rect = _output_text_helper.GetTrueTextRectangleDim(line);
+        line_rect.x = 0;
+        line_rect.y = y_index;
+        SDL_RenderCopy(_renderer.get(), texture.get(), NULL, &line_rect);
+        y_index += FONT_SIZE + 4;
+    }
+    SDL_RenderPresent(_renderer.get());
 }
 
-// LineChecker This function checks the line so we will be able to load a new memory range configuration
-void MemoryWindow::LineChecker(const std::string& line)
+void MemoryWindow::MoveYIndex(int amount)
 {
-    uint32_t start = 0;
-    uint32_t size = 0;
-    uint8_t num_count;
-    bool flag = true;
-    std::string tmp;
-
-    if (std::count(line.begin(), line.end(), '_') != 1)
+    _y_index += amount * SCROLL_SENSITIVITY;
+    if (_y_index > 0)
     {
-        flag = false;
+        _y_index = 0;
     }
-    for(auto it = line.begin(); it != line.end() && flag; ++it) {
-        if (*it == ',')
-        {
-            if (num_count == 0)
-            {
-                start = std::stol(tmp, nullptr, 16);
-                num_count++;
-            }
-            else if (num_count == 1)
-            {
-                size = std::stol(tmp, nullptr, 16);
-                num_count++;
-            }
-            else
-            {
-                flag = false;
-            }
-            tmp.clear();
-        }
-        else
-        {
-            if (std::isxdigit(*it))
-            {
-                tmp.push_back(*it);
-            }
-            else
-            {
-                flag = false;
-            }
-        }
-    }
-    if (flag)
-    {
-        _mem_range.start = start;
-        _mem_range.size = size;
-    }
-    _input_text_line_helper.SetAfterEnterMessage(((flag)? "SUCCESS" : "FAIL"));
 }
