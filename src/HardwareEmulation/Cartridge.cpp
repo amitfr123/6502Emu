@@ -10,7 +10,7 @@ Cartridge::Cartridge(std::fstream cartridge_file)
     Mapper::PrgRomBankMapper prg_rom_bank;
     Mapper::ChrRomBankMapper chr_rom_bank;
 
-    if (cartridge_file.is_open())
+    if (!cartridge_file.is_open())
     {
         throw std::runtime_error("Failed to read cartridge_file");
     }
