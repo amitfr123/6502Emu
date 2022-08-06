@@ -26,14 +26,16 @@ std::vector<std::string> MemoryWindow::RamViewBuilder()
     {
         if (line_addr % 16 == 0)
         {
-            string_vector.push_back(view);
+            string_vector.push_back(std::string(view.c_str()));
+            view.clear();
             view = "Address " + NumToHexStringConvertor::Convert(line_addr, 4) + ":  ";
         }
-        view += NumToHexStringConvertor::Convert(mem, 2);
+        view += NumToHexStringConvertor::Convert(mem, 2) + ",";
         line_addr++;
         if (line_addr % 4 == 0)
         {
-           view += " ";
+            view.pop_back();
+            view += " ";
         }
     }
     return std::move(string_vector);

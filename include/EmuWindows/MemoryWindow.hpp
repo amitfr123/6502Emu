@@ -19,7 +19,7 @@ public:
 private:
     static constexpr uint32_t SCROLL_SENSITIVITY = 10;
     static constexpr uint32_t FONT_SIZE = 10;
-    static constexpr SDL_Rect WINDOW_RECT = {0, 0, 505, 500};
+    static constexpr SDL_Rect WINDOW_RECT = {0, 0, 625, 500};
 
     std::vector<std::string> RamViewBuilder();
     void MoveYIndex(int amount);
