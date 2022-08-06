@@ -1,3 +1,5 @@
+#include <iostream> // This is used for debugging
+
 #include "NumToHexStringConvertor.hpp"
 
 #include "HardwareEmulation/Cpu.hpp"
@@ -89,16 +91,16 @@ Cpu::Cpu(Mmu::WriteFunction mmu_write, Mmu::ReadFunction mmu_read) :
     }),
     _opcode_vector({
         /*          0                                       1                                   2                                    3                               4                              5                                6                              7                               8                                  9                                       A                              B                                        C                                       D                                      E                                        F
-/*0*/   {IType::BRK, AMode::IMPLIED, 7},    {IType::ORA, AMode::I_INDIRECT, 6}, {IType::MIA, AMode::IMPLIED, 2},    {IType::MIA, AMode::I_INDIRECT, 2}, {IType::MIA, AMode::ZP, 3},     {IType::ORA, AMode::ZP, 3},     {IType::ASL, AMode::ZP, 5},     {IType::MIA, AMode::ZP, 5},     {IType::PHP, AMode::IMPLIED, 3}, {IType::ORA, AMode::IMM, 2},           {IType::ASL, AMode::IMPLIED, 2}, {IType::MIA, AMode::IMM, 2},           {IType::MIA, AMode::ABSOLUTE, 4},       {IType::ORA, AMode::ABSOLUTE, 4},       {IType::ASL, AMode::ABSOLUTE, 6},       {IType::MIA, AMode::ABSOLUTE, 6},
+/*0*/   {IType::BRK, AMode::IMPLIED, 7},    {IType::ORA, AMode::I_INDIRECT, 6}, {IType::MIA, AMode::IMPLIED, 2},    {IType::MIA, AMode::I_INDIRECT, 2}, {IType::MIA, AMode::ZP, 3},     {IType::ORA, AMode::ZP, 3},     {IType::ASL, AMode::ZP, 5},     {IType::MIA, AMode::ZP, 5},     {IType::PHP, AMode::IMPLIED, 3}, {IType::ORA, AMode::IMM, 2},           {IType::ASL, AMode::ACCUM, 2}, {IType::MIA, AMode::IMM, 2},           {IType::MIA, AMode::ABSOLUTE, 4},       {IType::ORA, AMode::ABSOLUTE, 4},       {IType::ASL, AMode::ABSOLUTE, 6},       {IType::MIA, AMode::ABSOLUTE, 6},
 /*1*/   {IType::BPL, AMode::RELATIVE, 2},   {IType::ORA, AMode::INDIRECT_I, 5}, {IType::MIA, AMode::IMPLIED, 2},    {IType::MIA, AMode::INDIRECT_I, 8}, {IType::MIA, AMode::I_ZP_X, 4}, {IType::ORA, AMode::I_ZP_X, 4}, {IType::ASL, AMode::I_ZP_X, 6}, {IType::MIA, AMode::I_ZP_X, 6}, {IType::CLC, AMode::IMPLIED, 2}, {IType::ORA, AMode::I_ABSOLUTE_Y, 4},  {IType::MIA, AMode::IMPLIED, 2}, {IType::MIA, AMode::I_ABSOLUTE_Y, 7},  {IType::MIA, AMode::I_ABSOLUTE_X, 4},   {IType::ORA, AMode::I_ABSOLUTE_X, 4},   {IType::ASL, AMode::I_ABSOLUTE_X, 7},   {IType::MIA, AMode::I_ABSOLUTE_X, 7},
-/*2*/   {IType::JSR, AMode::ABSOLUTE, 6},   {IType::AND, AMode::I_INDIRECT, 6}, {IType::MIA, AMode::IMPLIED, 2},    {IType::MIA, AMode::I_INDIRECT, 8}, {IType::BIT, AMode::ZP, 3},     {IType::AND, AMode::ZP, 3},     {IType::ROL, AMode::ZP, 5},     {IType::MIA, AMode::ZP, 5},     {IType::PLP, AMode::IMPLIED, 4}, {IType::AND, AMode::IMM, 2},           {IType::ROL, AMode::IMPLIED, 2}, {IType::MIA, AMode::IMM, 2},           {IType::BIT, AMode::ABSOLUTE, 4},       {IType::AND, AMode::ABSOLUTE, 4},       {IType::ROL, AMode::ABSOLUTE, 6},       {IType::MIA, AMode::ABSOLUTE, 6},
+/*2*/   {IType::JSR, AMode::ABSOLUTE, 6},   {IType::AND, AMode::I_INDIRECT, 6}, {IType::MIA, AMode::IMPLIED, 2},    {IType::MIA, AMode::I_INDIRECT, 8}, {IType::BIT, AMode::ZP, 3},     {IType::AND, AMode::ZP, 3},     {IType::ROL, AMode::ZP, 5},     {IType::MIA, AMode::ZP, 5},     {IType::PLP, AMode::IMPLIED, 4}, {IType::AND, AMode::IMM, 2},           {IType::ROL, AMode::ACCUM, 2}, {IType::MIA, AMode::IMM, 2},           {IType::BIT, AMode::ABSOLUTE, 4},       {IType::AND, AMode::ABSOLUTE, 4},       {IType::ROL, AMode::ABSOLUTE, 6},       {IType::MIA, AMode::ABSOLUTE, 6},
 /*3*/   {IType::BMI, AMode::RELATIVE, 2},   {IType::AND, AMode::INDIRECT_I, 5}, {IType::MIA, AMode::IMPLIED, 2},    {IType::MIA, AMode::I_INDIRECT, 8}, {IType::MIA, AMode::I_ZP_X, 4}, {IType::AND, AMode::I_ZP_X, 4}, {IType::ROL, AMode::I_ZP_X, 6}, {IType::MIA, AMode::I_ZP_X, 6}, {IType::SEC, AMode::IMPLIED, 2}, {IType::AND, AMode::I_ABSOLUTE_Y, 4},  {IType::MIA, AMode::IMPLIED, 2}, {IType::MIA, AMode::I_ABSOLUTE_Y, 7},  {IType::MIA, AMode::I_ABSOLUTE_X, 4},   {IType::AND, AMode::I_ABSOLUTE_X, 4},   {IType::ROL, AMode::I_ABSOLUTE_X, 7},   {IType::MIA, AMode::I_ABSOLUTE_X, 7},
-/*4*/   {IType::RTI, AMode::IMPLIED, 6},    {IType::EOR, AMode::I_INDIRECT, 6}, {IType::MIA, AMode::IMPLIED, 2},    {IType::MIA, AMode::I_INDIRECT, 8}, {IType::MIA, AMode::ZP, 3},     {IType::EOR, AMode::ZP, 3},     {IType::LSR, AMode::ZP, 5},     {IType::MIA, AMode::ZP, 5},     {IType::PHA, AMode::IMPLIED, 3}, {IType::EOR, AMode::IMM, 2},           {IType::LSR, AMode::IMPLIED, 2}, {IType::MIA, AMode::IMM, 2},           {IType::JMP, AMode::ABSOLUTE, 3},       {IType::EOR, AMode::ABSOLUTE, 4},       {IType::LSR, AMode::ABSOLUTE, 6},       {IType::MIA, AMode::ABSOLUTE, 6},
+/*4*/   {IType::RTI, AMode::IMPLIED, 6},    {IType::EOR, AMode::I_INDIRECT, 6}, {IType::MIA, AMode::IMPLIED, 2},    {IType::MIA, AMode::I_INDIRECT, 8}, {IType::MIA, AMode::ZP, 3},     {IType::EOR, AMode::ZP, 3},     {IType::LSR, AMode::ZP, 5},     {IType::MIA, AMode::ZP, 5},     {IType::PHA, AMode::IMPLIED, 3}, {IType::EOR, AMode::IMM, 2},           {IType::LSR, AMode::ACCUM, 2}, {IType::MIA, AMode::IMM, 2},           {IType::JMP, AMode::ABSOLUTE, 3},       {IType::EOR, AMode::ABSOLUTE, 4},       {IType::LSR, AMode::ABSOLUTE, 6},       {IType::MIA, AMode::ABSOLUTE, 6},
 /*5*/   {IType::BVC, AMode::RELATIVE, 2},   {IType::EOR, AMode::INDIRECT_I, 5}, {IType::MIA, AMode::IMPLIED, 2},    {IType::MIA, AMode::INDIRECT_I, 8}, {IType::MIA, AMode::I_ZP_X, 4}, {IType::EOR, AMode::I_ZP_X, 4}, {IType::LSR, AMode::I_ZP_X, 6}, {IType::MIA, AMode::I_ZP_X, 6}, {IType::CLI, AMode::IMPLIED, 2}, {IType::EOR, AMode::I_ABSOLUTE_Y, 4},  {IType::MIA, AMode::IMPLIED, 2}, {IType::MIA, AMode::I_ABSOLUTE_Y, 7},  {IType::MIA, AMode::I_ABSOLUTE_X, 4},   {IType::EOR, AMode::I_ABSOLUTE_X, 4},   {IType::LSR, AMode::I_ABSOLUTE_X, 7},   {IType::MIA, AMode::I_ABSOLUTE_X, 7},
-/*6*/   {IType::RTS, AMode::IMPLIED, 6},    {IType::ADC, AMode::INDIRECT_I, 6}, {IType::MIA, AMode::IMPLIED, 2},    {IType::MIA, AMode::I_INDIRECT, 8}, {IType::MIA, AMode::ZP, 3},     {IType::ADC, AMode::ZP, 3},     {IType::ROR, AMode::ZP, 5},     {IType::MIA, AMode::ZP, 5},     {IType::PLA, AMode::IMPLIED, 4}, {IType::ADC, AMode::IMM, 2},           {IType::ROR, AMode::IMPLIED, 2}, {IType::MIA, AMode::IMM, 2},           {IType::JMP, AMode::INDIRECT, 5},       {IType::ADC, AMode::ABSOLUTE, 4},       {IType::ROR, AMode::ABSOLUTE, 6},       {IType::MIA, AMode::ABSOLUTE, 6},
+/*6*/   {IType::RTS, AMode::IMPLIED, 6},    {IType::ADC, AMode::I_INDIRECT, 6}, {IType::MIA, AMode::IMPLIED, 2},    {IType::MIA, AMode::I_INDIRECT, 8}, {IType::MIA, AMode::ZP, 3},     {IType::ADC, AMode::ZP, 3},     {IType::ROR, AMode::ZP, 5},     {IType::MIA, AMode::ZP, 5},     {IType::PLA, AMode::IMPLIED, 4}, {IType::ADC, AMode::IMM, 2},           {IType::ROR, AMode::ACCUM, 2}, {IType::MIA, AMode::IMM, 2},           {IType::JMP, AMode::INDIRECT, 5},       {IType::ADC, AMode::ABSOLUTE, 4},       {IType::ROR, AMode::ABSOLUTE, 6},       {IType::MIA, AMode::ABSOLUTE, 6},
 /*7*/   {IType::BVS, AMode::RELATIVE, 2},   {IType::ADC, AMode::INDIRECT_I, 5}, {IType::MIA, AMode::IMPLIED, 2},    {IType::MIA, AMode::INDIRECT_I, 8}, {IType::MIA, AMode::I_ZP_X, 4}, {IType::ADC, AMode::I_ZP_X, 4}, {IType::ROR, AMode::I_ZP_X, 6}, {IType::MIA, AMode::I_ZP_X, 6}, {IType::SEI, AMode::IMPLIED, 2}, {IType::ADC, AMode::I_ABSOLUTE_Y, 4},  {IType::MIA, AMode::IMPLIED, 2}, {IType::MIA, AMode::I_ABSOLUTE_Y, 7},  {IType::MIA, AMode::I_ABSOLUTE_X, 4},   {IType::ADC, AMode::I_ABSOLUTE_X, 4},   {IType::ROR, AMode::I_ABSOLUTE_X, 7},   {IType::MIA, AMode::I_ABSOLUTE_X, 7},
 /*8*/   {IType::MIA, AMode::IMM, 2},        {IType::STA, AMode::I_INDIRECT, 6}, {IType::MIA, AMode::IMM, 2},        {IType::MIA, AMode::I_INDIRECT, 6}, {IType::STY, AMode::ZP, 3},     {IType::STA, AMode::ZP, 3},     {IType::STX, AMode::ZP, 3},     {IType::MIA, AMode::ZP, 3},     {IType::DEY, AMode::IMPLIED, 2}, {IType::MIA, AMode::IMM, 2},           {IType::TXA, AMode::IMPLIED, 2}, {IType::MIA, AMode::IMM, 2},           {IType::STY, AMode::ABSOLUTE, 4},       {IType::STA, AMode::ABSOLUTE, 4},       {IType::STX, AMode::ABSOLUTE, 4},       {IType::MIA, AMode::ABSOLUTE, 4},
-/*9*/   {IType::BCC, AMode::RELATIVE, 2},   {IType::STA, AMode::INDIRECT_I, 6}, {IType::MIA, AMode::IMPLIED, 2},    {IType::MIA, AMode::INDIRECT_I, 6}, {IType::STY, AMode::I_ZP_X, 4}, {IType::STA, AMode::I_ZP_X, 4}, {IType::STX, AMode::I_ZP_Y, 4}, {IType::MIA, AMode::I_ZP_Y, 4}, {IType::TYA, AMode::IMPLIED, 2}, {IType::STA, AMode::I_ABSOLUTE_Y, 5},  {IType::TXS, AMode::IMPLIED, 2}, {IType::MIA, AMode::I_ABSOLUTE_Y, 5},  {IType::MIA, AMode::I_ABSOLUTE_X, 5},   {IType::STX, AMode::I_ABSOLUTE_X, 5},   {IType::MIA, AMode::I_ABSOLUTE_Y, 5},   {IType::MIA, AMode::I_ABSOLUTE_Y, 5},
+/*9*/   {IType::BCC, AMode::RELATIVE, 2},   {IType::STA, AMode::INDIRECT_I, 6}, {IType::MIA, AMode::IMPLIED, 2},    {IType::MIA, AMode::INDIRECT_I, 6}, {IType::STY, AMode::I_ZP_X, 4}, {IType::STA, AMode::I_ZP_X, 4}, {IType::STX, AMode::I_ZP_Y, 4}, {IType::MIA, AMode::I_ZP_Y, 4}, {IType::TYA, AMode::IMPLIED, 2}, {IType::STA, AMode::I_ABSOLUTE_Y, 5},  {IType::TXS, AMode::IMPLIED, 2}, {IType::MIA, AMode::I_ABSOLUTE_Y, 5},  {IType::MIA, AMode::I_ABSOLUTE_X, 5},   {IType::STA, AMode::I_ABSOLUTE_X, 5},   {IType::MIA, AMode::I_ABSOLUTE_Y, 5},   {IType::MIA, AMode::I_ABSOLUTE_Y, 5},
 /*A*/   {IType::LDY, AMode::IMM, 2},        {IType::LDA, AMode::I_INDIRECT, 6}, {IType::LDX, AMode::IMM, 2},        {IType::MIA, AMode::I_INDIRECT, 6}, {IType::LDY, AMode::ZP, 3},     {IType::LDA, AMode::ZP, 3},     {IType::LDX, AMode::ZP, 3},     {IType::MIA, AMode::ZP, 3},     {IType::TAY, AMode::IMPLIED, 2}, {IType::LDA, AMode::IMM, 2},           {IType::TAX, AMode::IMPLIED, 2}, {IType::MIA, AMode::IMM, 2},           {IType::LDY, AMode::ABSOLUTE, 4},       {IType::LDA, AMode::ABSOLUTE, 4},       {IType::LDX, AMode::ABSOLUTE, 4},       {IType::MIA, AMode::ABSOLUTE, 4},
 /*B*/   {IType::BCS, AMode::RELATIVE, 2},   {IType::LDA, AMode::INDIRECT_I, 5}, {IType::MIA, AMode::IMPLIED, 2},    {IType::MIA, AMode::INDIRECT_I, 5}, {IType::LDY, AMode::I_ZP_X, 4}, {IType::LDA, AMode::I_ZP_X, 4}, {IType::LDX, AMode::I_ZP_Y, 4}, {IType::MIA, AMode::I_ZP_Y, 4}, {IType::CLV, AMode::IMPLIED, 2}, {IType::LDA, AMode::I_ABSOLUTE_Y, 4},  {IType::TSX, AMode::IMPLIED, 2}, {IType::MIA, AMode::I_ABSOLUTE_Y, 4},  {IType::LDY, AMode::I_ABSOLUTE_X, 4},   {IType::LDA, AMode::I_ABSOLUTE_X, 4},   {IType::LDX, AMode::I_ABSOLUTE_Y, 4},   {IType::MIA, AMode::I_ABSOLUTE_Y, 4},
 /*C*/   {IType::CPY, AMode::IMM, 2},        {IType::CMP, AMode::I_INDIRECT, 6}, {IType::MIA, AMode::IMM, 2},        {IType::MIA, AMode::I_INDIRECT, 8}, {IType::CPY, AMode::ZP, 3},     {IType::CMP, AMode::ZP, 3},     {IType::DEC, AMode::ZP, 5},     {IType::MIA, AMode::ZP, 5},     {IType::INY, AMode::IMPLIED, 2}, {IType::CMP, AMode::IMM, 2},           {IType::DEX, AMode::IMPLIED, 2}, {IType::MIA, AMode::IMM, 2},           {IType::CPY, AMode::ABSOLUTE, 4},       {IType::CMP, AMode::ABSOLUTE, 4},       {IType::DEC, AMode::ABSOLUTE, 6},       {IType::MIA, AMode::ABSOLUTE, 6},
@@ -107,13 +109,72 @@ Cpu::Cpu(Mmu::WriteFunction mmu_write, Mmu::ReadFunction mmu_read) :
 /*F*/   {IType::BEQ, AMode::RELATIVE, 2},   {IType::SBC, AMode::INDIRECT_I, 6}, {IType::MIA, AMode::IMPLIED, 2},    {IType::MIA, AMode::INDIRECT_I, 8}, {IType::MIA, AMode::I_ZP_X, 4}, {IType::SBC, AMode::I_ZP_X, 4}, {IType::INC, AMode::I_ZP_X, 6}, {IType::MIA, AMode::I_ZP_X, 6}, {IType::SED, AMode::IMPLIED, 2}, {IType::SBC, AMode::I_ABSOLUTE_Y, 4},  {IType::MIA, AMode::IMPLIED, 2}, {IType::MIA, AMode::I_ABSOLUTE_Y, 7},  {IType::MIA, AMode::I_ABSOLUTE_X, 4},   {IType::SBC, AMode::I_ABSOLUTE_X, 4},   {IType::INC, AMode::I_ABSOLUTE_X, 7},   {IType::MIA, AMode::I_ABSOLUTE_X, 7}
     })
 {
+    _loop_running = false;
+}
+
+void Cpu::CpuExecuteInstruction()
+{
+    static uint32_t index = 0;
+    
+    uint8_t opcode = CpuRead(_pc++);
+
+    // This is used for debug prints
+    std::string str = NumToHexStringConvertor::Convert(_pc - 1, 4) + "    ";
+    str += NumToHexStringConvertor::Convert(opcode, 2) + 
+    "   a:" + NumToHexStringConvertor::Convert(_a, 2) +
+    "   x:" + NumToHexStringConvertor::Convert(_x, 2) +
+    "   y:" + NumToHexStringConvertor::Convert(_y, 2) +
+    "   p:" + NumToHexStringConvertor::Convert(_p | RESERVED_FLAG_MASK, 2) +
+    "   sp:" + NumToHexStringConvertor::Convert(_sp, 2);
+    _instruction_type_mapper[_opcode_vector[opcode].type](_opcode_vector[opcode]);
+    std::cout << str << std::endl;
+    if (cmp_vector[index].substr(0,4) != str.substr(0,4))
+    {
+        getchar();
+    }
+    index++;
+}
+
+void Cpu::CpuReset()
+{
+    _a = 0;
+    _x = 0;
+    _y = 0;
+    _p = 0;
+    _sp = 0xfd; // this is done to simulate the hacked stack insertions
+    //_pc = CpuRead(_irq_vector_map[IrqType::RESET].first) | (CpuRead(_irq_vector_map[IrqType::RESET].second) << 8);
+    _pc = 0xc000; // The nestest.nes file requires that you run it from 0xc000 if you dont have a ppu
+    _cycles = 7;
+}
+
+void Cpu::Irq()
+{
+    if (!GetFlag(INTERRUPT_DISABLE_FLAG_MASK))
+    {
+        SetFlag(INTERRUPT_DISABLE_FLAG_MASK, true);
+        CpuWrite(Mmu::STACK_OFFSET + _sp--, (_pc >> 8) & 0xff);
+        CpuWrite(Mmu::STACK_OFFSET + _sp--, _pc & 0xff);
+        CpuWrite(Mmu::STACK_OFFSET + _sp--, _p | RESERVED_FLAG_MASK);
+        _pc = CpuRead(_irq_vector_map[IrqType::NORMAL_IRQ].first) | (CpuRead(_irq_vector_map[IrqType::NORMAL_IRQ].second) << 8);
+        _cycles += 7;
+    }
+}
+
+void Cpu::Nmi()
+{
+    SetFlag(INTERRUPT_DISABLE_FLAG_MASK, true);
+    CpuWrite(Mmu::STACK_OFFSET + _sp--, (_pc >> 8) & 0xff);
+    CpuWrite(Mmu::STACK_OFFSET + _sp--, _pc & 0xff);
+    CpuWrite(Mmu::STACK_OFFSET + _sp--, _p | RESERVED_FLAG_MASK);
+    _pc = CpuRead(_irq_vector_map[IrqType::NMI].first) | (CpuRead(_irq_vector_map[IrqType::NMI].second) << 8);
+    _cycles += 7;
 }
 
 void Cpu::SetFlag(uint8_t flagMask, bool val)
 {
     if (val)
     {
-        p |= flagMask;
+        _p |= flagMask;
     }
     else
     {
@@ -123,12 +184,12 @@ void Cpu::SetFlag(uint8_t flagMask, bool val)
 
 void Cpu::ClearFlag(uint8_t flagMask)
 {
-    p &= !(flagMask);
+    _p &= ~(flagMask);
 }
 
 uint8_t Cpu::GetFlag(uint8_t flagMask)
 {
-    return (p & flagMask)? 1 : 0;
+    return (_p & flagMask)? 1 : 0;
 }
 
 void Cpu::CpuWrite(const uint16_t address, const uint8_t data)
@@ -148,53 +209,55 @@ uint16_t Cpu::accum_addr()
 
 uint16_t Cpu::imm_addr()
 {
-    return pc++;
+    return _pc++;
 }
 
 uint16_t Cpu::absolute_addr()
 {
-    uint16_t lo = CpuRead(pc++);
-    uint16_t hi = CpuRead(pc++);
+    uint16_t lo = CpuRead(_pc++);
+    uint16_t hi = CpuRead(_pc++);
     return lo | (hi << 8);
 }
 
 uint16_t Cpu::zp_addr()
 {
-    return CpuRead(pc++);
+    return CpuRead(_pc++);
 }
 
 uint16_t Cpu::i_zp_x_addr()
 {
-    return (CpuRead(pc++) + x) & 0x00ff;
+    return (CpuRead(_pc++) + _x) & 0x00ff;
 }
 
 uint16_t Cpu::i_zp_y_addr()
 {
-    return (CpuRead(pc++) + y) & 0x00ff;
+    return (CpuRead(_pc++) + _y) & 0x00ff;
 }
 
 uint16_t Cpu::i_absolute_addr_x()
 {
-    uint16_t lo = CpuRead(pc++);
-    uint16_t hi = CpuRead(pc++);
-    uint16_t addr = 0;
-    addr = (lo | (hi << 8)) + x;
+    uint16_t lo = CpuRead(_pc++);
+    uint16_t hi = CpuRead(_pc++);
+    uint16_t addr = lo;
+    addr |= (hi << 8);
+    addr += _x;
     if ((addr & 0xff00) != hi)
     {
-        cycles++;
+        _cycles++;
     }
     return addr;
 }
 
 uint16_t Cpu::i_absolute_addr_y()
 {
-    uint16_t lo = CpuRead(pc++);
-    uint16_t hi = CpuRead(pc++);
-    uint16_t addr = 0;
-    addr = (lo | (hi << 8)) + y;
+    uint16_t lo = CpuRead(_pc++);
+    uint16_t hi = CpuRead(_pc++);
+    uint16_t addr = lo;
+    addr |= (hi << 8);
+    addr += _y;
     if ((addr & 0xff00) != hi)
     {
-        cycles++;
+        _cycles++;
     }
     return addr;
 }
@@ -206,39 +269,42 @@ uint16_t Cpu::implied_addr()
 
 uint16_t Cpu::relative_addr()
 {
-    int8_t offset = CpuRead(pc++);
-    return pc + offset;
+    int8_t offset = CpuRead(_pc++);
+    return _pc + offset;
 }
 
 uint16_t Cpu::i_indirect_addr()
 {
-    uint16_t zpg_addr = (CpuRead(pc++) + x) & 0x00ff;
+    uint16_t zpg_addr = CpuRead(_pc++);
     uint16_t addr = 0;
-    addr |= CpuRead(zpg_addr++);
-    addr |= (CpuRead(zpg_addr) >> 8);
+    addr |= CpuRead((zpg_addr++ + _x) & 0xff)  & 0xff;
+    addr |= (CpuRead((zpg_addr + _x) & 0xff) << 8);
     return addr;
 }
 
 uint16_t Cpu::indirect_i_addr()
 {
-    uint16_t zpg_addr = CpuRead(pc++);
+    uint16_t zpg_addr = CpuRead(_pc++);
     uint16_t addr = 0;
     addr |= CpuRead(zpg_addr++);
-    addr |= (CpuRead(zpg_addr) << 8);
-    if ((addr + y) & 0xff00 != addr & 0xff00)
+    addr |= (CpuRead(zpg_addr & 0xff) << 8);
+    if ((addr + _y) & 0xff00 != addr & 0xff00)
     {
-        cycles++;
+        _cycles++;
     }
-    return addr + y;
+    return addr + _y;
 }
 
 uint16_t Cpu::indirect_addr()
 {
     uint16_t ind_addr = 0;
     uint16_t addr = 0;
-    ind_addr |= CpuRead(pc++);
-    ind_addr |= CpuRead(pc++) << 8;
-    addr |= CpuRead(ind_addr++);
+    ind_addr |= CpuRead(_pc++);
+    ind_addr |= CpuRead(_pc++) << 8;
+    addr |= CpuRead(ind_addr);
+    // This line is in order to emulate one of the 6502 bugs
+    // In the 6502 advencing the ind_addr to read the hi bits of the address did not effect the hi bits of the ind_addr
+    ind_addr = (ind_addr & 0xff00) | ((ind_addr + 1) & 0xff); 
     addr |= (CpuRead(ind_addr) << 8);
     return addr;
 }
@@ -247,21 +313,21 @@ void Cpu::Adc(const Instruction & instruction)
 {
     uint16_t addr = _address_mode_mapper[instruction.addrMode]();
     uint8_t data = CpuRead(addr);
-    uint16_t temp = GetFlag(CARRY_FLAG_MASK) + data + a;
+    uint16_t temp = GetFlag(CARRY_FLAG_MASK) + data + _a;
     SetFlag(CARRY_FLAG_MASK, temp & 0xff00);
     SetFlag(ZERO_FLAG_MASK, !(temp & 0xff));
-    SetFlag(OVERFLOW_FLAG_MASK, (a ^ temp) & (data ^ temp) & 0x80);
+    SetFlag(OVERFLOW_FLAG_MASK, (_a ^ temp) & (data ^ temp) & 0x80);
     SetFlag(NEGATIVE_FLAG_MASK, temp & 0x80);
-    a = temp & 0xff;
+    _a = temp & 0xff;
 }
 
 void Cpu::And(const Instruction & instruction)
 {
     uint16_t addr = _address_mode_mapper[instruction.addrMode]();
     uint8_t data = CpuRead(addr);
-    a &= data;
-    SetFlag(ZERO_FLAG_MASK, !(a));
-    SetFlag(NEGATIVE_FLAG_MASK, a & 0x80);
+    _a &= data;
+    SetFlag(ZERO_FLAG_MASK, !(_a));
+    SetFlag(NEGATIVE_FLAG_MASK, _a & 0x80);
 }
 
 void Cpu::Asl(const Instruction & instruction)
@@ -270,7 +336,7 @@ void Cpu::Asl(const Instruction & instruction)
     uint16_t addr;
     if (instruction.addrMode == AMode::ACCUM)
     {
-        data = a;
+        data = _a;
     }
     else
     {
@@ -283,7 +349,7 @@ void Cpu::Asl(const Instruction & instruction)
     SetFlag(NEGATIVE_FLAG_MASK, temp & 0x80);
     if (instruction.addrMode == AMode::ACCUM)
     {
-        a = temp & 0xff;
+        _a = temp & 0xff;
     }
     else
     {
@@ -293,43 +359,43 @@ void Cpu::Asl(const Instruction & instruction)
 
 void Cpu::Bcc(const Instruction & instruction)
 {
+    
+    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
     if (!GetFlag(CARRY_FLAG_MASK))
     {
-        uint16_t addr = _address_mode_mapper[instruction.addrMode]();
-        uint16_t temp = CpuRead(addr) + pc;
-        if (temp & 0xff != pc % 0xff)
+        if (addr & 0xff != _pc % 0xff)
         {
-            cycles++;
+            _cycles++;
         }
-        pc = temp;
+        _pc = addr;
     }
 }
 
 void Cpu::Bcs(const Instruction & instruction)
 {
+    
+    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
     if (GetFlag(CARRY_FLAG_MASK))
     {
-        uint16_t addr = _address_mode_mapper[instruction.addrMode]();
-        uint16_t temp = CpuRead(addr) + pc;
-        if (temp & 0xff != pc % 0xff)
+        if (addr & 0xff != _pc % 0xff)
         {
-            cycles++;
+            _cycles++;
         }
-        pc = temp;
+        _pc = addr;
     }
 }
 
 void Cpu::Beq(const Instruction & instruction)
 {
+    
+    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
     if (GetFlag(ZERO_FLAG_MASK))
     {
-        uint16_t addr = _address_mode_mapper[instruction.addrMode]();
-        uint16_t temp = CpuRead(addr) + pc;
-        if (temp & 0xff != pc % 0xff)
+        if (addr & 0xff != _pc % 0xff)
         {
-            cycles++;
+            _cycles++;
         }
-        pc = temp;
+        _pc = addr;
     }
 }
 
@@ -337,7 +403,7 @@ void Cpu::Bit(const Instruction & instruction)
 {
     uint16_t addr = _address_mode_mapper[instruction.addrMode]();
     uint8_t data = CpuRead(addr);
-    uint16_t temp = a & data;
+    uint16_t temp = _a & data;
     SetFlag(ZERO_FLAG_MASK, !(temp & 0xff));
     SetFlag(OVERFLOW_FLAG_MASK, data & 1 << 6);
     SetFlag(NEGATIVE_FLAG_MASK, data & 1 << 7);
@@ -345,81 +411,81 @@ void Cpu::Bit(const Instruction & instruction)
 
 void Cpu::Bmi(const Instruction & instruction)
 {
+    
+    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
     if (GetFlag(NEGATIVE_FLAG_MASK))
     {
-        uint16_t addr = _address_mode_mapper[instruction.addrMode]();
-        uint16_t temp = CpuRead(addr) + pc;
-        if (temp & 0xff != pc % 0xff)
+        if (addr & 0xff != _pc % 0xff)
         {
-            cycles++;
+            _cycles++;
         }
-        pc = temp;
+        _pc = addr;
     }
 }
 
 void Cpu::Bne(const Instruction & instruction)
 {
+    
+    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
     if (!GetFlag(ZERO_FLAG_MASK))
     {
-        uint16_t addr = _address_mode_mapper[instruction.addrMode]();
-        uint16_t temp = CpuRead(addr) + pc;
-        if (temp & 0xff != pc % 0xff)
+        if (addr & 0xff != _pc % 0xff)
         {
-            cycles++;
+            _cycles++;
         }
-        pc = temp;
+        _pc = addr;
     }
 }
 
 void Cpu::Bpl(const Instruction & instruction)
 {
+    
+    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
     if (!GetFlag(NEGATIVE_FLAG_MASK))
     {
-        uint16_t addr = _address_mode_mapper[instruction.addrMode]();
-        uint16_t temp = CpuRead(addr) + pc;
-        if (temp & 0xff != pc % 0xff)
+        if (addr & 0xff != _pc % 0xff)
         {
-            cycles++;
+            _cycles++;
         }
-        pc = temp;
+        _pc = addr;
     }
 }
 
 void Cpu::Brk(const Instruction & instruction)
 {
-    pc++;
+    _pc++;
     SetFlag(INTERRUPT_DISABLE_FLAG_MASK, true);
-    CpuWrite(Mmu::STACK_OFFSET + sp--, (pc >> 8) & 0xff);
-    CpuWrite(Mmu::STACK_OFFSET + sp--, pc & 0xff);
-    CpuWrite(Mmu::STACK_OFFSET + sp--, p | BREAK_COMMAND_FLAG_MASK);
-    pc = CpuRead(_irq_vector_map[IrqType::BRK].first) | (CpuRead(_irq_vector_map[IrqType::BRK].second) << 8);
+    CpuWrite(Mmu::STACK_OFFSET + _sp--, (_pc >> 8) & 0xff);
+    CpuWrite(Mmu::STACK_OFFSET + _sp--, _pc & 0xff);
+    CpuWrite(Mmu::STACK_OFFSET + _sp--, _p | BREAK_COMMAND_FLAG_MASK);
+    _pc = CpuRead(_irq_vector_map[IrqType::BRK].first) | (CpuRead(_irq_vector_map[IrqType::BRK].second) << 8);
 }
 
 void Cpu::Bvc(const Instruction & instruction)
 {
+    
+    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
     if (!GetFlag(OVERFLOW_FLAG_MASK))
     {
-        uint16_t addr = _address_mode_mapper[instruction.addrMode]();
-        uint16_t temp = CpuRead(addr) + pc;
-        if (temp & 0xff != pc % 0xff)
+        if (addr & 0xff != _pc % 0xff)
         {
-            cycles++;
+            _cycles++;
         }
-        pc = temp;
+        _pc = addr;
     }
 }
 
 void Cpu::Bvs(const Instruction & instruction)
 {
+    
+    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
     if (GetFlag(OVERFLOW_FLAG_MASK))
     {
-        uint16_t addr = _address_mode_mapper[instruction.addrMode]();
-        uint16_t temp = CpuRead(addr) + pc;
-        if (temp & 0xff != pc % 0xff)
+        if (addr & 0xff != _pc % 0xff)
         {
-            cycles++;
+            _cycles++;
         }
-        pc = temp;
+        _pc = addr;
     }
 }
 
@@ -447,8 +513,8 @@ void Cpu::Cmp(const Instruction & instruction)
 {
     uint16_t addr = _address_mode_mapper[instruction.addrMode]();
     uint8_t data = CpuRead(addr);
-    uint16_t temp = a - data;
-    SetFlag(CARRY_FLAG_MASK,(a >= data));
+    uint16_t temp = _a - data;
+    SetFlag(CARRY_FLAG_MASK,(_a >= data));
     SetFlag(ZERO_FLAG_MASK, !(temp & 0xff));
     SetFlag(NEGATIVE_FLAG_MASK, temp & 0x80);
 }
@@ -457,8 +523,8 @@ void Cpu::Cpx(const Instruction & instruction)
 {
     uint16_t addr = _address_mode_mapper[instruction.addrMode]();
     uint8_t data = CpuRead(addr);
-    uint16_t temp = x - data;
-    SetFlag(CARRY_FLAG_MASK,(x >= data));
+    uint16_t temp = _x - data;
+    SetFlag(CARRY_FLAG_MASK,(_x >= data));
     SetFlag(ZERO_FLAG_MASK, !(temp & 0xff));
     SetFlag(NEGATIVE_FLAG_MASK, temp & 0x80);
 }
@@ -467,8 +533,8 @@ void Cpu::Cpy(const Instruction & instruction)
 {
     uint16_t addr = _address_mode_mapper[instruction.addrMode]();
     uint8_t data = CpuRead(addr);
-    uint16_t temp = y - data;
-    SetFlag(CARRY_FLAG_MASK,(y >= data));
+    uint16_t temp = _y - data;
+    SetFlag(CARRY_FLAG_MASK,(_y >= data));
     SetFlag(ZERO_FLAG_MASK, !(temp & 0xff));
     SetFlag(NEGATIVE_FLAG_MASK, temp & 0x80);
 }
@@ -484,25 +550,25 @@ void Cpu::Dec(const Instruction & instruction)
 
 void Cpu::Dex(const Instruction & instruction)
 {
-    x--;
-    SetFlag(ZERO_FLAG_MASK, !(x));
-    SetFlag(NEGATIVE_FLAG_MASK, x & 0x80);
+    _x--;
+    SetFlag(ZERO_FLAG_MASK, !(_x));
+    SetFlag(NEGATIVE_FLAG_MASK, _x & 0x80);
 }
 
 void Cpu::Dey(const Instruction & instruction)
 {
-    y--;
-    SetFlag(ZERO_FLAG_MASK, !(y));
-    SetFlag(NEGATIVE_FLAG_MASK, y & 0x80);
+    _y--;
+    SetFlag(ZERO_FLAG_MASK, !(_y));
+    SetFlag(NEGATIVE_FLAG_MASK, _y & 0x80);
 }
 
 void Cpu::Eor(const Instruction & instruction)
 {
     uint16_t addr = _address_mode_mapper[instruction.addrMode]();
     uint8_t data = CpuRead(addr);
-    a ^= data;
-    SetFlag(ZERO_FLAG_MASK, !(a));
-    SetFlag(NEGATIVE_FLAG_MASK, a & 0x80);
+    _a ^= data;
+    SetFlag(ZERO_FLAG_MASK, !(_a));
+    SetFlag(NEGATIVE_FLAG_MASK, _a & 0x80);
 }
 
 void Cpu::Inc(const Instruction & instruction)
@@ -516,54 +582,55 @@ void Cpu::Inc(const Instruction & instruction)
 
 void Cpu::Inx(const Instruction & instruction)
 {
-    x++;
-    SetFlag(ZERO_FLAG_MASK, !(x));
-    SetFlag(NEGATIVE_FLAG_MASK, x & 0x80);
+    _x++;
+    SetFlag(ZERO_FLAG_MASK, !(_x));
+    SetFlag(NEGATIVE_FLAG_MASK, _x & 0x80);
 }
 
 void Cpu::Iny(const Instruction & instruction)
 {
-    y++;
-    SetFlag(ZERO_FLAG_MASK, !(y));
-    SetFlag(NEGATIVE_FLAG_MASK, y & 0x80);
+    _y++;
+    SetFlag(ZERO_FLAG_MASK, !(_y));
+    SetFlag(NEGATIVE_FLAG_MASK, _y & 0x80);
 }
 
 void Cpu::Jmp(const Instruction & instruction)
 {
     uint16_t addr = _address_mode_mapper[instruction.addrMode]();
-    pc = addr;
+    _pc = addr;
 }
 
 void Cpu::Jsr(const Instruction & instruction)
 {
     uint16_t addr = _address_mode_mapper[instruction.addrMode]();
-    CpuWrite(Mmu::STACK_OFFSET + sp--, (pc >> 8) & 0xff);
-    CpuWrite(Mmu::STACK_OFFSET + sp--, pc & 0xff);
-    pc = addr;
+    _pc--; // pc has jumped 3 times and now we need to go back once
+    CpuWrite(Mmu::STACK_OFFSET + _sp--, (_pc >> 8) & 0xff);
+    CpuWrite(Mmu::STACK_OFFSET + _sp--, _pc & 0xff);
+    _pc = addr;
 }
 
 void Cpu::Lda(const Instruction & instruction)
 {
     uint16_t addr = _address_mode_mapper[instruction.addrMode]();
-    a = CpuRead(addr);
-    SetFlag(ZERO_FLAG_MASK, !(a));
-    SetFlag(NEGATIVE_FLAG_MASK, a & 0x80);
+    _a = CpuRead(addr);
+    SetFlag(ZERO_FLAG_MASK, !(_a));
+    SetFlag(NEGATIVE_FLAG_MASK, _a & 0x80);
 }
 
 void Cpu::Ldx(const Instruction & instruction)
 {
     uint16_t addr = _address_mode_mapper[instruction.addrMode]();
-    x = CpuRead(addr);
-    SetFlag(ZERO_FLAG_MASK, !(x));
-    SetFlag(NEGATIVE_FLAG_MASK, x & 0x80);
+    _x = CpuRead(addr);
+    SetFlag(ZERO_FLAG_MASK, !(_x));
+    SetFlag(NEGATIVE_FLAG_MASK, _x & 0x80);
 }
 
 void Cpu::Ldy(const Instruction & instruction)
 {
     uint16_t addr = _address_mode_mapper[instruction.addrMode]();
-    y = CpuRead(addr);
-    SetFlag(ZERO_FLAG_MASK, !(y));
-    SetFlag(NEGATIVE_FLAG_MASK, y & 0x80);
+    _y = CpuRead(addr);
+    SetFlag(ZERO_FLAG_MASK, !(_y));
+    SetFlag(NEGATIVE_FLAG_MASK, _y & 0x80);
 }
 
 void Cpu::Lsr(const Instruction & instruction)
@@ -572,7 +639,7 @@ void Cpu::Lsr(const Instruction & instruction)
     uint16_t addr;
     if (instruction.addrMode == AMode::ACCUM)
     {
-        data = a;
+        data = _a;
     }
     else
     {
@@ -585,7 +652,7 @@ void Cpu::Lsr(const Instruction & instruction)
     ClearFlag(NEGATIVE_FLAG_MASK);
     if (instruction.addrMode == AMode::ACCUM)
     {
-        a = temp & 0xff;
+        _a = temp & 0xff;
     }
     else
     {
@@ -595,38 +662,39 @@ void Cpu::Lsr(const Instruction & instruction)
 
 void Cpu::Nop(const Instruction & instruction)
 {
-    // does nothing
+    // This line is used to handle illegal nops that need to preform pc advencments  
+    _address_mode_mapper[instruction.addrMode]();
 }
 
 void Cpu::Ora(const Instruction & instruction)
 {
     uint16_t addr = _address_mode_mapper[instruction.addrMode]();
     uint8_t data = CpuRead(addr);
-    a |= data;
-    SetFlag(ZERO_FLAG_MASK, !(a));
-    SetFlag(NEGATIVE_FLAG_MASK, a & 0x80);
+    _a |= data;
+    SetFlag(ZERO_FLAG_MASK, !(_a));
+    SetFlag(NEGATIVE_FLAG_MASK, _a & 0x80);
 }
 
 void Cpu::Pha(const Instruction & instruction)
 {
-    CpuWrite(Mmu::STACK_OFFSET + sp--, a);
+    CpuWrite(Mmu::STACK_OFFSET + _sp--, _a);
 }
 
 void Cpu::Php(const Instruction & instruction)
 {
-    CpuWrite(Mmu::STACK_OFFSET + sp--, p | BREAK_COMMAND_FLAG_MASK | RESERVED_FLAG_MASK);
+    CpuWrite(Mmu::STACK_OFFSET + _sp--, _p | BREAK_COMMAND_FLAG_MASK | RESERVED_FLAG_MASK);
 }
 
 void Cpu::Pla(const Instruction & instruction)
 {
-    a = CpuRead(Mmu::STACK_OFFSET + ++sp);
-    SetFlag(ZERO_FLAG_MASK, !(a));
-    SetFlag(NEGATIVE_FLAG_MASK, a & 0x80);
+    _a = CpuRead(Mmu::STACK_OFFSET + ++_sp);
+    SetFlag(ZERO_FLAG_MASK, !(_a));
+    SetFlag(NEGATIVE_FLAG_MASK, _a & 0x80);
 }
 
 void Cpu::Plp(const Instruction & instruction)
 {
-    p = CpuRead(Mmu::STACK_OFFSET + ++sp);
+    _p = CpuRead(Mmu::STACK_OFFSET + ++_sp);
     ClearFlag(BREAK_COMMAND_FLAG_MASK);
     ClearFlag(RESERVED_FLAG_MASK);
 }
@@ -637,7 +705,7 @@ void Cpu::Rol(const Instruction & instruction)
     uint16_t addr;
     if (instruction.addrMode == AMode::ACCUM)
     {
-        data = a;
+        data = _a;
     }
     else
     {
@@ -645,13 +713,13 @@ void Cpu::Rol(const Instruction & instruction)
         data = CpuRead(addr);
     }
     uint16_t temp = data << 1;
-    temp |= (data & 0x80) >> 7;
+    temp |= GetFlag(CARRY_FLAG_MASK);
     SetFlag(CARRY_FLAG_MASK, temp & 0xff00);
     SetFlag(ZERO_FLAG_MASK, !(temp & 0xff));
     SetFlag(NEGATIVE_FLAG_MASK, temp & 0x80);
     if (instruction.addrMode == AMode::ACCUM)
     {
-        a = temp & 0xff;
+        _a = temp & 0xff;
     }
     else
     {
@@ -664,7 +732,7 @@ void Cpu::Ror(const Instruction & instruction)
     uint16_t addr;
     if (instruction.addrMode == AMode::ACCUM)
     {
-        data = a;
+        data = _a;
     }
     else
     {
@@ -672,13 +740,13 @@ void Cpu::Ror(const Instruction & instruction)
         data = CpuRead(addr);
     }
     uint16_t temp = data >> 1;
-    temp |= (data & 0x1) << 7;
+    temp |= GetFlag(CARRY_FLAG_MASK) << 7;
     SetFlag(CARRY_FLAG_MASK, data & 0x1);
     SetFlag(ZERO_FLAG_MASK, !(temp & 0xff));
     SetFlag(NEGATIVE_FLAG_MASK, temp & 0x80);
     if (instruction.addrMode == AMode::ACCUM)
     {
-        a = temp & 0xff;
+        _a = temp & 0xff;
     }
     else
     {
@@ -688,30 +756,30 @@ void Cpu::Ror(const Instruction & instruction)
 
 void Cpu::Rti(const Instruction & instruction)
 {
-    p = CpuRead(Mmu::STACK_OFFSET + ++sp);
-    pc = CpuRead(Mmu::STACK_OFFSET + ++sp);
-    pc |= CpuRead(Mmu::STACK_OFFSET + ++sp) << 8;
+    _p = CpuRead(Mmu::STACK_OFFSET + ++_sp);
+    _pc = CpuRead(Mmu::STACK_OFFSET + ++_sp);
+    _pc |= CpuRead(Mmu::STACK_OFFSET + ++_sp) << 8;
     ClearFlag(BREAK_COMMAND_FLAG_MASK);
     ClearFlag(RESERVED_FLAG_MASK);
 }
 
 void Cpu::Rts(const Instruction & instruction)
 {
-    pc = CpuRead(Mmu::STACK_OFFSET + ++sp);
-    pc |= CpuRead(Mmu::STACK_OFFSET + ++sp) << 8;
-    pc++;
+    _pc = CpuRead(Mmu::STACK_OFFSET + ++_sp);
+    _pc |= CpuRead(Mmu::STACK_OFFSET + ++_sp) << 8;
+    _pc++;
 }
 
 void Cpu::Sbc(const Instruction & instruction)
 {
     uint16_t addr = _address_mode_mapper[instruction.addrMode]();
     uint8_t data = CpuRead(addr);
-    uint16_t temp = a - data - GetFlag(CARRY_FLAG_MASK);
+    uint16_t temp = _a + (data ^ 0xff) + GetFlag(CARRY_FLAG_MASK);
     SetFlag(CARRY_FLAG_MASK, temp & 0xff00);
     SetFlag(ZERO_FLAG_MASK, !(temp & 0xff));
-    SetFlag(OVERFLOW_FLAG_MASK, (a ^ temp) & (data ^ temp) & 0x80);
+    SetFlag(OVERFLOW_FLAG_MASK, (_a ^ temp) & ((data ^ 0xff) ^ temp) & 0x80);
     SetFlag(NEGATIVE_FLAG_MASK, temp & 0x80);
-    a = temp & 0xff;
+    _a = temp & 0xff;
 }
 
 void Cpu::Sec(const Instruction & instruction)
@@ -732,57 +800,68 @@ void Cpu::Sei(const Instruction & instruction)
 void Cpu::Sta(const Instruction & instruction)
 {
     uint16_t addr = _address_mode_mapper[instruction.addrMode]();
-    CpuWrite(addr, a);
+    CpuWrite(addr, _a);
 }
 
 void Cpu::Stx(const Instruction & instruction)
 {
     uint16_t addr = _address_mode_mapper[instruction.addrMode]();
-    CpuWrite(addr, x);
+    CpuWrite(addr, _x);
 }
 
 void Cpu::Sty(const Instruction & instruction)
 {
     uint16_t addr = _address_mode_mapper[instruction.addrMode]();
-    CpuWrite(addr, y);
+    CpuWrite(addr, _y);
 }
 
 void Cpu::Tax(const Instruction & instruction)
 {
-    x = a;
+    _x = _a;
+    SetFlag(ZERO_FLAG_MASK, !(_x));
+    SetFlag(NEGATIVE_FLAG_MASK, _x & 0x80);
 }
 
 void Cpu::Tay(const Instruction & instruction)
 {
-    y = a;
+    _y = _a;
+    SetFlag(ZERO_FLAG_MASK, !(_y));
+    SetFlag(NEGATIVE_FLAG_MASK, _y & 0x80);
 }
 
 void Cpu::Tsx(const Instruction & instruction)
 {
-    x = sp;
+    _x = _sp;
+    SetFlag(ZERO_FLAG_MASK, !(_x));
+    SetFlag(NEGATIVE_FLAG_MASK, _x & 0x80);
 }
 
 void Cpu::Txa(const Instruction & instruction)
 {
-    a = x;
+    _a = _x;
+    SetFlag(ZERO_FLAG_MASK, !(_a));
+    SetFlag(NEGATIVE_FLAG_MASK, _a & 0x80);
 }
 
 void Cpu::Txs(const Instruction & instruction)
 {
-    sp = x;
+    _sp = _x;
 }
 
 void Cpu::Tya(const Instruction & instruction)
 {
-    a = y;
+    _a = _y;
+    SetFlag(ZERO_FLAG_MASK, !(_a));
+    SetFlag(NEGATIVE_FLAG_MASK, _a & 0x80);
 }
 
 std::map<uint16_t, std::string> Cpu::Disassemble()
 {
     std::map<uint16_t, std::string> diss_map;
-    uint16_t addr = 0;
-    uint16_t orig_addr = 0;
+    uint16_t addr = 0xc000;
+    uint16_t orig_addr = addr;
     uint16_t temp_addr;
+    int8_t temp_data;
     uint8_t data;
     while (addr < 0xffff && orig_addr <= addr)
     {
@@ -841,8 +920,9 @@ std::map<uint16_t, std::string> Cpu::Disassemble()
                 
         break;
         case AMode::RELATIVE:
-            temp_addr = _mmu_read(addr++);
-            asm_line += "  " + NumToHexStringConvertor::Convert(temp_addr, 4) + " [Rel Address:" + NumToHexStringConvertor::Convert(temp_addr + addr, 4) + "]";
+            temp_data = _mmu_read(addr++);
+            temp_addr = temp_data;
+            asm_line += "  " + NumToHexStringConvertor::Convert(temp_addr, 4) + " [Rel Address:" + NumToHexStringConvertor::Convert(temp_data + addr, 4) + "]";
                 
         break;
         case AMode::I_INDIRECT:
