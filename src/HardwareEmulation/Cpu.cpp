@@ -4,6 +4,10 @@
 
 #include "HardwareEmulation/Cpu.hpp"
 
+#ifdef NESTEST_DEBUG
+#include "HardwareEmulation/NestestLogTester.hpp"
+#endif // NESTEST_DEBUG
+
 Cpu::Cpu(Mmu::WriteFunction mmu_write, Mmu::ReadFunction mmu_read) : 
     _mmu_write(std::move(mmu_write)),
     _mmu_read(std::move(mmu_read)),
@@ -118,20 +122,10 @@ void Cpu::CpuExecuteInstruction()
     
     uint8_t opcode = CpuRead(_pc++);
 
-    // This is used for debug prints
-    std::string str = NumToHexStringConvertor::Convert(_pc - 1, 4) + "    ";
-    str += NumToHexStringConvertor::Convert(opcode, 2) + 
-    "   a:" + NumToHexStringConvertor::Convert(_a, 2) +
-    "   x:" + NumToHexStringConvertor::Convert(_x, 2) +
-    "   y:" + NumToHexStringConvertor::Convert(_y, 2) +
-    "   p:" + NumToHexStringConvertor::Convert(_p | RESERVED_FLAG_MASK, 2) +
-    "   sp:" + NumToHexStringConvertor::Convert(_sp, 2);
-    _instruction_type_mapper[_opcode_vector[opcode].type](_opcode_vector[opcode]);
-    std::cout << str << std::endl;
-    if (cmp_vector[index].substr(0,4) != str.substr(0,4))
-    {
-        getchar();
-    }
+    #ifdef NESTEST_DEBUG
+    NestestLogTester::DebugInstruction(*this, opcode, index);
+    #endif // NESTEST_DEBUG
+    _instruction_type_mapper[_opcode_vector[opcode].type](_opcode_vector[opcode].addrMode);
     index++;
 }
 
@@ -309,9 +303,9 @@ uint16_t Cpu::indirect_addr()
     return addr;
 }
 
-void Cpu::Adc(const Instruction & instruction)
+void Cpu::Adc(const AMode addrMode)
 {
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     uint8_t data = CpuRead(addr);
     uint16_t temp = GetFlag(CARRY_FLAG_MASK) + data + _a;
     SetFlag(CARRY_FLAG_MASK, temp & 0xff00);
@@ -321,33 +315,33 @@ void Cpu::Adc(const Instruction & instruction)
     _a = temp & 0xff;
 }
 
-void Cpu::And(const Instruction & instruction)
+void Cpu::And(const AMode addrMode)
 {
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     uint8_t data = CpuRead(addr);
     _a &= data;
     SetFlag(ZERO_FLAG_MASK, !(_a));
     SetFlag(NEGATIVE_FLAG_MASK, _a & 0x80);
 }
 
-void Cpu::Asl(const Instruction & instruction)
+void Cpu::Asl(const AMode addrMode)
 {
     uint8_t data;
     uint16_t addr;
-    if (instruction.addrMode == AMode::ACCUM)
+    if (addrMode == AMode::ACCUM)
     {
         data = _a;
     }
     else
     {
-        addr = _address_mode_mapper[instruction.addrMode]();
+        addr = _address_mode_mapper[addrMode]();
         data = CpuRead(addr);
     }
     uint16_t temp = data << 1;
     SetFlag(CARRY_FLAG_MASK, temp & 0xff00);
     SetFlag(ZERO_FLAG_MASK, !(temp & 0xff));
     SetFlag(NEGATIVE_FLAG_MASK, temp & 0x80);
-    if (instruction.addrMode == AMode::ACCUM)
+    if (addrMode == AMode::ACCUM)
     {
         _a = temp & 0xff;
     }
@@ -357,10 +351,10 @@ void Cpu::Asl(const Instruction & instruction)
     }
 }
 
-void Cpu::Bcc(const Instruction & instruction)
+void Cpu::Bcc(const AMode addrMode)
 {
     
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     if (!GetFlag(CARRY_FLAG_MASK))
     {
         if (addr & 0xff != _pc % 0xff)
@@ -371,10 +365,10 @@ void Cpu::Bcc(const Instruction & instruction)
     }
 }
 
-void Cpu::Bcs(const Instruction & instruction)
+void Cpu::Bcs(const AMode addrMode)
 {
     
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     if (GetFlag(CARRY_FLAG_MASK))
     {
         if (addr & 0xff != _pc % 0xff)
@@ -385,10 +379,10 @@ void Cpu::Bcs(const Instruction & instruction)
     }
 }
 
-void Cpu::Beq(const Instruction & instruction)
+void Cpu::Beq(const AMode addrMode)
 {
     
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     if (GetFlag(ZERO_FLAG_MASK))
     {
         if (addr & 0xff != _pc % 0xff)
@@ -399,9 +393,9 @@ void Cpu::Beq(const Instruction & instruction)
     }
 }
 
-void Cpu::Bit(const Instruction & instruction)
+void Cpu::Bit(const AMode addrMode)
 {
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     uint8_t data = CpuRead(addr);
     uint16_t temp = _a & data;
     SetFlag(ZERO_FLAG_MASK, !(temp & 0xff));
@@ -409,10 +403,10 @@ void Cpu::Bit(const Instruction & instruction)
     SetFlag(NEGATIVE_FLAG_MASK, data & 1 << 7);
 }
 
-void Cpu::Bmi(const Instruction & instruction)
+void Cpu::Bmi(const AMode addrMode)
 {
     
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     if (GetFlag(NEGATIVE_FLAG_MASK))
     {
         if (addr & 0xff != _pc % 0xff)
@@ -423,10 +417,10 @@ void Cpu::Bmi(const Instruction & instruction)
     }
 }
 
-void Cpu::Bne(const Instruction & instruction)
+void Cpu::Bne(const AMode addrMode)
 {
     
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     if (!GetFlag(ZERO_FLAG_MASK))
     {
         if (addr & 0xff != _pc % 0xff)
@@ -437,10 +431,10 @@ void Cpu::Bne(const Instruction & instruction)
     }
 }
 
-void Cpu::Bpl(const Instruction & instruction)
+void Cpu::Bpl(const AMode addrMode)
 {
     
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     if (!GetFlag(NEGATIVE_FLAG_MASK))
     {
         if (addr & 0xff != _pc % 0xff)
@@ -451,7 +445,7 @@ void Cpu::Bpl(const Instruction & instruction)
     }
 }
 
-void Cpu::Brk(const Instruction & instruction)
+void Cpu::Brk(const AMode addrMode)
 {
     _pc++;
     SetFlag(INTERRUPT_DISABLE_FLAG_MASK, true);
@@ -461,10 +455,10 @@ void Cpu::Brk(const Instruction & instruction)
     _pc = CpuRead(_irq_vector_map[IrqType::BRK].first) | (CpuRead(_irq_vector_map[IrqType::BRK].second) << 8);
 }
 
-void Cpu::Bvc(const Instruction & instruction)
+void Cpu::Bvc(const AMode addrMode)
 {
     
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     if (!GetFlag(OVERFLOW_FLAG_MASK))
     {
         if (addr & 0xff != _pc % 0xff)
@@ -475,10 +469,10 @@ void Cpu::Bvc(const Instruction & instruction)
     }
 }
 
-void Cpu::Bvs(const Instruction & instruction)
+void Cpu::Bvs(const AMode addrMode)
 {
     
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     if (GetFlag(OVERFLOW_FLAG_MASK))
     {
         if (addr & 0xff != _pc % 0xff)
@@ -489,29 +483,29 @@ void Cpu::Bvs(const Instruction & instruction)
     }
 }
 
-void Cpu::Clc(const Instruction & instruction)
+void Cpu::Clc(const AMode addrMode)
 {
     ClearFlag(CARRY_FLAG_MASK);
 }
 
-void Cpu::Cld(const Instruction & instruction)
+void Cpu::Cld(const AMode addrMode)
 {
     ClearFlag(DECIMAL_MODE_FLAG_MASK);
 }
 
-void Cpu::Cli(const Instruction & instruction)
+void Cpu::Cli(const AMode addrMode)
 {
     ClearFlag(INTERRUPT_DISABLE_FLAG_MASK);
 }
 
-void Cpu::Clv(const Instruction & instruction)
+void Cpu::Clv(const AMode addrMode)
 {
     ClearFlag(OVERFLOW_FLAG_MASK);
 }
 
-void Cpu::Cmp(const Instruction & instruction)
+void Cpu::Cmp(const AMode addrMode)
 {
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     uint8_t data = CpuRead(addr);
     uint16_t temp = _a - data;
     SetFlag(CARRY_FLAG_MASK,(_a >= data));
@@ -519,9 +513,9 @@ void Cpu::Cmp(const Instruction & instruction)
     SetFlag(NEGATIVE_FLAG_MASK, temp & 0x80);
 }
 
-void Cpu::Cpx(const Instruction & instruction)
+void Cpu::Cpx(const AMode addrMode)
 {
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     uint8_t data = CpuRead(addr);
     uint16_t temp = _x - data;
     SetFlag(CARRY_FLAG_MASK,(_x >= data));
@@ -529,9 +523,9 @@ void Cpu::Cpx(const Instruction & instruction)
     SetFlag(NEGATIVE_FLAG_MASK, temp & 0x80);
 }
 
-void Cpu::Cpy(const Instruction & instruction)
+void Cpu::Cpy(const AMode addrMode)
 {
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     uint8_t data = CpuRead(addr);
     uint16_t temp = _y - data;
     SetFlag(CARRY_FLAG_MASK,(_y >= data));
@@ -539,118 +533,118 @@ void Cpu::Cpy(const Instruction & instruction)
     SetFlag(NEGATIVE_FLAG_MASK, temp & 0x80);
 }
 
-void Cpu::Dec(const Instruction & instruction)
+void Cpu::Dec(const AMode addrMode)
 {
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     uint8_t data = CpuRead(addr) - 1;
     SetFlag(ZERO_FLAG_MASK, !(data));
     SetFlag(NEGATIVE_FLAG_MASK, data & 0x80);
     CpuWrite(addr, data);
 }
 
-void Cpu::Dex(const Instruction & instruction)
+void Cpu::Dex(const AMode addrMode)
 {
     _x--;
     SetFlag(ZERO_FLAG_MASK, !(_x));
     SetFlag(NEGATIVE_FLAG_MASK, _x & 0x80);
 }
 
-void Cpu::Dey(const Instruction & instruction)
+void Cpu::Dey(const AMode addrMode)
 {
     _y--;
     SetFlag(ZERO_FLAG_MASK, !(_y));
     SetFlag(NEGATIVE_FLAG_MASK, _y & 0x80);
 }
 
-void Cpu::Eor(const Instruction & instruction)
+void Cpu::Eor(const AMode addrMode)
 {
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     uint8_t data = CpuRead(addr);
     _a ^= data;
     SetFlag(ZERO_FLAG_MASK, !(_a));
     SetFlag(NEGATIVE_FLAG_MASK, _a & 0x80);
 }
 
-void Cpu::Inc(const Instruction & instruction)
+void Cpu::Inc(const AMode addrMode)
 {
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     uint8_t data = CpuRead(addr) + 1;
     SetFlag(ZERO_FLAG_MASK, !(data));
     SetFlag(NEGATIVE_FLAG_MASK, data & 0x80);
     CpuWrite(addr, data);
 }
 
-void Cpu::Inx(const Instruction & instruction)
+void Cpu::Inx(const AMode addrMode)
 {
     _x++;
     SetFlag(ZERO_FLAG_MASK, !(_x));
     SetFlag(NEGATIVE_FLAG_MASK, _x & 0x80);
 }
 
-void Cpu::Iny(const Instruction & instruction)
+void Cpu::Iny(const AMode addrMode)
 {
     _y++;
     SetFlag(ZERO_FLAG_MASK, !(_y));
     SetFlag(NEGATIVE_FLAG_MASK, _y & 0x80);
 }
 
-void Cpu::Jmp(const Instruction & instruction)
+void Cpu::Jmp(const AMode addrMode)
 {
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     _pc = addr;
 }
 
-void Cpu::Jsr(const Instruction & instruction)
+void Cpu::Jsr(const AMode addrMode)
 {
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     _pc--; // pc has jumped 3 times and now we need to go back once
     CpuWrite(Mmu::STACK_OFFSET + _sp--, (_pc >> 8) & 0xff);
     CpuWrite(Mmu::STACK_OFFSET + _sp--, _pc & 0xff);
     _pc = addr;
 }
 
-void Cpu::Lda(const Instruction & instruction)
+void Cpu::Lda(const AMode addrMode)
 {
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     _a = CpuRead(addr);
     SetFlag(ZERO_FLAG_MASK, !(_a));
     SetFlag(NEGATIVE_FLAG_MASK, _a & 0x80);
 }
 
-void Cpu::Ldx(const Instruction & instruction)
+void Cpu::Ldx(const AMode addrMode)
 {
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     _x = CpuRead(addr);
     SetFlag(ZERO_FLAG_MASK, !(_x));
     SetFlag(NEGATIVE_FLAG_MASK, _x & 0x80);
 }
 
-void Cpu::Ldy(const Instruction & instruction)
+void Cpu::Ldy(const AMode addrMode)
 {
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     _y = CpuRead(addr);
     SetFlag(ZERO_FLAG_MASK, !(_y));
     SetFlag(NEGATIVE_FLAG_MASK, _y & 0x80);
 }
 
-void Cpu::Lsr(const Instruction & instruction)
+void Cpu::Lsr(const AMode addrMode)
 {
     uint8_t data;
     uint16_t addr;
-    if (instruction.addrMode == AMode::ACCUM)
+    if (addrMode == AMode::ACCUM)
     {
         data = _a;
     }
     else
     {
-        addr = _address_mode_mapper[instruction.addrMode]();
+        addr = _address_mode_mapper[addrMode]();
         data = CpuRead(addr);
     }
     uint16_t temp = data >> 1;
     SetFlag(CARRY_FLAG_MASK, data & 0x1);
     SetFlag(ZERO_FLAG_MASK, !(temp & 0xff));
     ClearFlag(NEGATIVE_FLAG_MASK);
-    if (instruction.addrMode == AMode::ACCUM)
+    if (addrMode == AMode::ACCUM)
     {
         _a = temp & 0xff;
     }
@@ -660,56 +654,56 @@ void Cpu::Lsr(const Instruction & instruction)
     }
 }
 
-void Cpu::Nop(const Instruction & instruction)
+void Cpu::Nop(const AMode addrMode)
 {
     // This line is used to handle illegal nops that need to preform pc advencments  
-    _address_mode_mapper[instruction.addrMode]();
+    _address_mode_mapper[addrMode]();
 }
 
-void Cpu::Ora(const Instruction & instruction)
+void Cpu::Ora(const AMode addrMode)
 {
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     uint8_t data = CpuRead(addr);
     _a |= data;
     SetFlag(ZERO_FLAG_MASK, !(_a));
     SetFlag(NEGATIVE_FLAG_MASK, _a & 0x80);
 }
 
-void Cpu::Pha(const Instruction & instruction)
+void Cpu::Pha(const AMode addrMode)
 {
     CpuWrite(Mmu::STACK_OFFSET + _sp--, _a);
 }
 
-void Cpu::Php(const Instruction & instruction)
+void Cpu::Php(const AMode addrMode)
 {
     CpuWrite(Mmu::STACK_OFFSET + _sp--, _p | BREAK_COMMAND_FLAG_MASK | RESERVED_FLAG_MASK);
 }
 
-void Cpu::Pla(const Instruction & instruction)
+void Cpu::Pla(const AMode addrMode)
 {
     _a = CpuRead(Mmu::STACK_OFFSET + ++_sp);
     SetFlag(ZERO_FLAG_MASK, !(_a));
     SetFlag(NEGATIVE_FLAG_MASK, _a & 0x80);
 }
 
-void Cpu::Plp(const Instruction & instruction)
+void Cpu::Plp(const AMode addrMode)
 {
     _p = CpuRead(Mmu::STACK_OFFSET + ++_sp);
     ClearFlag(BREAK_COMMAND_FLAG_MASK);
     ClearFlag(RESERVED_FLAG_MASK);
 }
 
-void Cpu::Rol(const Instruction & instruction)
+void Cpu::Rol(const AMode addrMode)
 {
     uint8_t data;
     uint16_t addr;
-    if (instruction.addrMode == AMode::ACCUM)
+    if (addrMode == AMode::ACCUM)
     {
         data = _a;
     }
     else
     {
-        addr = _address_mode_mapper[instruction.addrMode]();
+        addr = _address_mode_mapper[addrMode]();
         data = CpuRead(addr);
     }
     uint16_t temp = data << 1;
@@ -717,7 +711,7 @@ void Cpu::Rol(const Instruction & instruction)
     SetFlag(CARRY_FLAG_MASK, temp & 0xff00);
     SetFlag(ZERO_FLAG_MASK, !(temp & 0xff));
     SetFlag(NEGATIVE_FLAG_MASK, temp & 0x80);
-    if (instruction.addrMode == AMode::ACCUM)
+    if (addrMode == AMode::ACCUM)
     {
         _a = temp & 0xff;
     }
@@ -726,17 +720,17 @@ void Cpu::Rol(const Instruction & instruction)
         CpuWrite(addr, temp & 0xff);
     }
 }
-void Cpu::Ror(const Instruction & instruction)
+void Cpu::Ror(const AMode addrMode)
 {
     uint8_t data;
     uint16_t addr;
-    if (instruction.addrMode == AMode::ACCUM)
+    if (addrMode == AMode::ACCUM)
     {
         data = _a;
     }
     else
     {
-        addr = _address_mode_mapper[instruction.addrMode]();
+        addr = _address_mode_mapper[addrMode]();
         data = CpuRead(addr);
     }
     uint16_t temp = data >> 1;
@@ -744,7 +738,7 @@ void Cpu::Ror(const Instruction & instruction)
     SetFlag(CARRY_FLAG_MASK, data & 0x1);
     SetFlag(ZERO_FLAG_MASK, !(temp & 0xff));
     SetFlag(NEGATIVE_FLAG_MASK, temp & 0x80);
-    if (instruction.addrMode == AMode::ACCUM)
+    if (addrMode == AMode::ACCUM)
     {
         _a = temp & 0xff;
     }
@@ -754,7 +748,7 @@ void Cpu::Ror(const Instruction & instruction)
     }
 }
 
-void Cpu::Rti(const Instruction & instruction)
+void Cpu::Rti(const AMode addrMode)
 {
     _p = CpuRead(Mmu::STACK_OFFSET + ++_sp);
     _pc = CpuRead(Mmu::STACK_OFFSET + ++_sp);
@@ -763,16 +757,16 @@ void Cpu::Rti(const Instruction & instruction)
     ClearFlag(RESERVED_FLAG_MASK);
 }
 
-void Cpu::Rts(const Instruction & instruction)
+void Cpu::Rts(const AMode addrMode)
 {
     _pc = CpuRead(Mmu::STACK_OFFSET + ++_sp);
     _pc |= CpuRead(Mmu::STACK_OFFSET + ++_sp) << 8;
     _pc++;
 }
 
-void Cpu::Sbc(const Instruction & instruction)
+void Cpu::Sbc(const AMode addrMode)
 {
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     uint8_t data = CpuRead(addr);
     uint16_t temp = _a + (data ^ 0xff) + GetFlag(CARRY_FLAG_MASK);
     SetFlag(CARRY_FLAG_MASK, temp & 0xff00);
@@ -782,73 +776,73 @@ void Cpu::Sbc(const Instruction & instruction)
     _a = temp & 0xff;
 }
 
-void Cpu::Sec(const Instruction & instruction)
+void Cpu::Sec(const AMode addrMode)
 {
     SetFlag(CARRY_FLAG_MASK, true);
 }
 
-void Cpu::Sed(const Instruction & instruction)
+void Cpu::Sed(const AMode addrMode)
 {
     SetFlag(DECIMAL_MODE_FLAG_MASK, true);
 }
 
-void Cpu::Sei(const Instruction & instruction)
+void Cpu::Sei(const AMode addrMode)
 {
     SetFlag(INTERRUPT_DISABLE_FLAG_MASK, true);
 }
 
-void Cpu::Sta(const Instruction & instruction)
+void Cpu::Sta(const AMode addrMode)
 {
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     CpuWrite(addr, _a);
 }
 
-void Cpu::Stx(const Instruction & instruction)
+void Cpu::Stx(const AMode addrMode)
 {
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     CpuWrite(addr, _x);
 }
 
-void Cpu::Sty(const Instruction & instruction)
+void Cpu::Sty(const AMode addrMode)
 {
-    uint16_t addr = _address_mode_mapper[instruction.addrMode]();
+    uint16_t addr = _address_mode_mapper[addrMode]();
     CpuWrite(addr, _y);
 }
 
-void Cpu::Tax(const Instruction & instruction)
+void Cpu::Tax(const AMode addrMode)
 {
     _x = _a;
     SetFlag(ZERO_FLAG_MASK, !(_x));
     SetFlag(NEGATIVE_FLAG_MASK, _x & 0x80);
 }
 
-void Cpu::Tay(const Instruction & instruction)
+void Cpu::Tay(const AMode addrMode)
 {
     _y = _a;
     SetFlag(ZERO_FLAG_MASK, !(_y));
     SetFlag(NEGATIVE_FLAG_MASK, _y & 0x80);
 }
 
-void Cpu::Tsx(const Instruction & instruction)
+void Cpu::Tsx(const AMode addrMode)
 {
     _x = _sp;
     SetFlag(ZERO_FLAG_MASK, !(_x));
     SetFlag(NEGATIVE_FLAG_MASK, _x & 0x80);
 }
 
-void Cpu::Txa(const Instruction & instruction)
+void Cpu::Txa(const AMode addrMode)
 {
     _a = _x;
     SetFlag(ZERO_FLAG_MASK, !(_a));
     SetFlag(NEGATIVE_FLAG_MASK, _a & 0x80);
 }
 
-void Cpu::Txs(const Instruction & instruction)
+void Cpu::Txs(const AMode addrMode)
 {
     _sp = _x;
 }
 
-void Cpu::Tya(const Instruction & instruction)
+void Cpu::Tya(const AMode addrMode)
 {
     _a = _y;
     SetFlag(ZERO_FLAG_MASK, !(_a));

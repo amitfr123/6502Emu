@@ -10,7 +10,7 @@
 
 class FileLoadingWindow : public BaseWindow {
 public:
-    using TransferFile = std::function<void (std::fstream file, std::string file_path)>;
+    using TransferFile = std::function<void (std::string file_path)>;
     FileLoadingWindow(TransferFile transfer_function);
 
     void RenderWindow() override;

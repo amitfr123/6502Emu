@@ -1,5 +1,7 @@
 #include <SDL2/SDL_ttf.h>
 
+#include <filesystem>
+
 #include "EmuWindows/FileLoadingWindow.hpp"
 #include "WindowUtilities/SdlColorHelper.hpp"
 
@@ -30,10 +32,9 @@ void FileLoadingWindow::RenderWindow()
 void FileLoadingWindow::LineChecker(const std::string& str)
 {
     bool flag = false;
-    std::fstream fs(str, std::fstream::in | std::fstream::out | std::fstream::binary);
-    if (fs.is_open())
+    if (std::filesystem::exists(str))
     {
-        _transfer_function(std::move(fs), str);
+        _transfer_function(str);
         flag = true;
     }
     _input_text_line_helper.SetAfterEnterMessage(((flag)? "SUCCESS" : "FAIL"));
