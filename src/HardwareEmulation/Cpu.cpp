@@ -123,7 +123,7 @@ void Cpu::CpuExecuteInstruction()
     uint8_t opcode = CpuRead(_pc++);
 
     #ifdef NESTEST_DEBUG
-    NestestLogTester::DebugInstruction(*this, opcode, index);
+    NestestLogTester::GetInstance()->DebugInstruction(*this, opcode, index);
     #endif // NESTEST_DEBUG
     _instruction_type_mapper[_opcode_vector[opcode].type](_opcode_vector[opcode].addrMode);
     index++;
@@ -134,10 +134,15 @@ void Cpu::CpuReset()
     _a = 0;
     _x = 0;
     _y = 0;
-    _p = 0;
+    _p = INTERRUPT_DISABLE_FLAG_MASK;
     _sp = 0xfd; // this is done to simulate the hacked stack insertions
-    //_pc = CpuRead(_irq_vector_map[IrqType::RESET].first) | (CpuRead(_irq_vector_map[IrqType::RESET].second) << 8);
-    _pc = 0xc000; // The nestest.nes file requires that you run it from 0xc000 if you dont have a ppu
+
+    #ifdef NESTEST_DEBUG
+    _pc = 0xc000;
+    #else
+    _pc = CpuRead(_irq_vector_map[IrqType::RESET].first) | (CpuRead(_irq_vector_map[IrqType::RESET].second) << 8);
+    #endif // NESTEST_DEBUG
+
     _cycles = 7;
 }
 
