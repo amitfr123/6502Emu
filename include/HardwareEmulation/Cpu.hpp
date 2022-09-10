@@ -4,12 +4,14 @@
 #include <unordered_map>
 #include <vector>
 #include <fstream>
-
-#include "Mmu.hpp"
+#include <functional>
 
 class Cpu {
 public:
-    Cpu(Mmu::WriteFunction mmu_write, Mmu::ReadFunction mmu_read);
+    using WriteFunction = std::function<void (const uint16_t address, const uint8_t data)>;
+    using ReadFunction = std::function<uint8_t (const uint16_t address)>;
+
+    Cpu(WriteFunction mmu_write, ReadFunction mmu_read);
 
     void CpuReset();
 
@@ -20,6 +22,9 @@ private:
     #ifdef NESTEST_DEBUG
     friend class NestestLogTester;
     #endif // NESTEST_DEBUG
+
+    static constexpr uint32_t STACK_OFFSET = 0x100;
+    static constexpr uint32_t STACK_SIZE = 0x100;
 
     static constexpr uint8_t CARRY_FLAG_MASK = 0x01;
     static constexpr uint8_t ZERO_FLAG_MASK = 0x02;
@@ -148,8 +153,8 @@ private:
     uint8_t _y; //index
     uint8_t _p; //flags
     size_t _cycles;
-    Mmu::WriteFunction _mmu_write;
-    Mmu::ReadFunction _mmu_read;
+    WriteFunction _mmu_write;
+    ReadFunction _mmu_read;
     std::unordered_map<AMode, AddressFunction> _address_mode_mapper;
     std::unordered_map<IType, InstructionFunction> _instruction_type_mapper;
     std::unordered_map<IrqType, std::pair<uint16_t, uint16_t>> _irq_vector_map;

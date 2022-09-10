@@ -1,5 +1,3 @@
-#include <iostream> // This is used for debugging
-
 #include "NumToHexStringConvertor.hpp"
 
 #include "HardwareEmulation/Cpu.hpp"
@@ -8,7 +6,7 @@
 #include "HardwareEmulation/NestestLogTester.hpp"
 #endif // NESTEST_DEBUG
 
-Cpu::Cpu(Mmu::WriteFunction mmu_write, Mmu::ReadFunction mmu_read) : 
+Cpu::Cpu(WriteFunction mmu_write, ReadFunction mmu_read) : 
     _mmu_write(std::move(mmu_write)),
     _mmu_read(std::move(mmu_read)),
     _address_mode_mapper({
@@ -151,9 +149,9 @@ void Cpu::Irq()
     if (!GetFlag(INTERRUPT_DISABLE_FLAG_MASK))
     {
         SetFlag(INTERRUPT_DISABLE_FLAG_MASK, true);
-        CpuWrite(Mmu::STACK_OFFSET + _sp--, (_pc >> 8) & 0xff);
-        CpuWrite(Mmu::STACK_OFFSET + _sp--, _pc & 0xff);
-        CpuWrite(Mmu::STACK_OFFSET + _sp--, _p | RESERVED_FLAG_MASK);
+        CpuWrite(STACK_OFFSET + _sp--, (_pc >> 8) & 0xff);
+        CpuWrite(STACK_OFFSET + _sp--, _pc & 0xff);
+        CpuWrite(STACK_OFFSET + _sp--, _p | RESERVED_FLAG_MASK);
         _pc = CpuRead(_irq_vector_map[IrqType::NORMAL_IRQ].first) | (CpuRead(_irq_vector_map[IrqType::NORMAL_IRQ].second) << 8);
         _cycles += 7;
     }
@@ -162,9 +160,9 @@ void Cpu::Irq()
 void Cpu::Nmi()
 {
     SetFlag(INTERRUPT_DISABLE_FLAG_MASK, true);
-    CpuWrite(Mmu::STACK_OFFSET + _sp--, (_pc >> 8) & 0xff);
-    CpuWrite(Mmu::STACK_OFFSET + _sp--, _pc & 0xff);
-    CpuWrite(Mmu::STACK_OFFSET + _sp--, _p | RESERVED_FLAG_MASK);
+    CpuWrite(STACK_OFFSET + _sp--, (_pc >> 8) & 0xff);
+    CpuWrite(STACK_OFFSET + _sp--, _pc & 0xff);
+    CpuWrite(STACK_OFFSET + _sp--, _p | RESERVED_FLAG_MASK);
     _pc = CpuRead(_irq_vector_map[IrqType::NMI].first) | (CpuRead(_irq_vector_map[IrqType::NMI].second) << 8);
     _cycles += 7;
 }
@@ -454,9 +452,9 @@ void Cpu::Brk(const AMode addrMode)
 {
     _pc++;
     SetFlag(INTERRUPT_DISABLE_FLAG_MASK, true);
-    CpuWrite(Mmu::STACK_OFFSET + _sp--, (_pc >> 8) & 0xff);
-    CpuWrite(Mmu::STACK_OFFSET + _sp--, _pc & 0xff);
-    CpuWrite(Mmu::STACK_OFFSET + _sp--, _p | BREAK_COMMAND_FLAG_MASK);
+    CpuWrite(STACK_OFFSET + _sp--, (_pc >> 8) & 0xff);
+    CpuWrite(STACK_OFFSET + _sp--, _pc & 0xff);
+    CpuWrite(STACK_OFFSET + _sp--, _p | BREAK_COMMAND_FLAG_MASK);
     _pc = CpuRead(_irq_vector_map[IrqType::BRK].first) | (CpuRead(_irq_vector_map[IrqType::BRK].second) << 8);
 }
 
@@ -603,8 +601,8 @@ void Cpu::Jsr(const AMode addrMode)
 {
     uint16_t addr = _address_mode_mapper[addrMode]();
     _pc--; // pc has jumped 3 times and now we need to go back once
-    CpuWrite(Mmu::STACK_OFFSET + _sp--, (_pc >> 8) & 0xff);
-    CpuWrite(Mmu::STACK_OFFSET + _sp--, _pc & 0xff);
+    CpuWrite(STACK_OFFSET + _sp--, (_pc >> 8) & 0xff);
+    CpuWrite(STACK_OFFSET + _sp--, _pc & 0xff);
     _pc = addr;
 }
 
@@ -676,24 +674,24 @@ void Cpu::Ora(const AMode addrMode)
 
 void Cpu::Pha(const AMode addrMode)
 {
-    CpuWrite(Mmu::STACK_OFFSET + _sp--, _a);
+    CpuWrite(STACK_OFFSET + _sp--, _a);
 }
 
 void Cpu::Php(const AMode addrMode)
 {
-    CpuWrite(Mmu::STACK_OFFSET + _sp--, _p | BREAK_COMMAND_FLAG_MASK | RESERVED_FLAG_MASK);
+    CpuWrite(STACK_OFFSET + _sp--, _p | BREAK_COMMAND_FLAG_MASK | RESERVED_FLAG_MASK);
 }
 
 void Cpu::Pla(const AMode addrMode)
 {
-    _a = CpuRead(Mmu::STACK_OFFSET + ++_sp);
+    _a = CpuRead(STACK_OFFSET + ++_sp);
     SetFlag(ZERO_FLAG_MASK, !(_a));
     SetFlag(NEGATIVE_FLAG_MASK, _a & 0x80);
 }
 
 void Cpu::Plp(const AMode addrMode)
 {
-    _p = CpuRead(Mmu::STACK_OFFSET + ++_sp);
+    _p = CpuRead(STACK_OFFSET + ++_sp);
     ClearFlag(BREAK_COMMAND_FLAG_MASK);
     ClearFlag(RESERVED_FLAG_MASK);
 }
@@ -755,17 +753,17 @@ void Cpu::Ror(const AMode addrMode)
 
 void Cpu::Rti(const AMode addrMode)
 {
-    _p = CpuRead(Mmu::STACK_OFFSET + ++_sp);
-    _pc = CpuRead(Mmu::STACK_OFFSET + ++_sp);
-    _pc |= CpuRead(Mmu::STACK_OFFSET + ++_sp) << 8;
+    _p = CpuRead(STACK_OFFSET + ++_sp);
+    _pc = CpuRead(STACK_OFFSET + ++_sp);
+    _pc |= CpuRead(STACK_OFFSET + ++_sp) << 8;
     ClearFlag(BREAK_COMMAND_FLAG_MASK);
     ClearFlag(RESERVED_FLAG_MASK);
 }
 
 void Cpu::Rts(const AMode addrMode)
 {
-    _pc = CpuRead(Mmu::STACK_OFFSET + ++_sp);
-    _pc |= CpuRead(Mmu::STACK_OFFSET + ++_sp) << 8;
+    _pc = CpuRead(STACK_OFFSET + ++_sp);
+    _pc |= CpuRead(STACK_OFFSET + ++_sp) << 8;
     _pc++;
 }
 

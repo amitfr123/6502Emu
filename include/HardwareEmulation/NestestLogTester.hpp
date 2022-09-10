@@ -7,6 +7,7 @@
 #include <string_view>
 #include <algorithm>
 #include <vector>
+#include <memory>
 
 #include "Cpu.hpp"
 
