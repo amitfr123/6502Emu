@@ -11,6 +11,7 @@ add_definitions("-DFONT_PATH=\"${PROJECT_SOURCE_DIR}/fonts/\"")
 add_definitions("-DDISSASMBLY_LOG_PATH=\"${PROJECT_SOURCE_DIR}/dissasmbly/log\"")
 
 add_definitions("-DNESTEST_ROM_PATH=\"${PROJECT_SOURCE_DIR}/nestest_rom/nestest.nes\"")
+add_definitions("-DNESTEST_ROM_LOG_PATH=\"${PROJECT_SOURCE_DIR}/nestest_rom/nestest.log\"")
 
 add_definitions("-DNESTEST_DEBUG")
 
